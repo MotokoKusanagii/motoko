@@ -10,6 +10,14 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const sdl_dep = b.dependency("sdl", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    const sdl_lib = sdl_dep.artifact("SDL3");
+
+    exe_mod.linkLibrary(sdl_lib);
+
     const exe = b.addExecutable(.{
         .name = "motoko",
         .root_module = exe_mod,
