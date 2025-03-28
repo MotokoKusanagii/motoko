@@ -1,4 +1,4 @@
-const c = @cImport({
+pub usingnamespace @cImport({
     @cInclude("SDL3/SDL.h");
     @cDefine("SDL_MAIN_HANDLED", {});
     @cInclude("SDL3/SDL_main.h");
