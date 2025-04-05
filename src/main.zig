@@ -26,8 +26,9 @@ pub fn main() !void {
     }
     const allocator = da.allocator();
 
-    var console = Console.init(allocator, renderer, 0, 0, 2, 5);
+    var console = Console.init(allocator, renderer, 0, 0, 3, 5);
     defer console.deinit();
+    try console.info("Console initialized.");
 
     main_loop: while (true) {
         var event: c.SDL_Event = undefined;
@@ -38,15 +39,6 @@ pub fn main() !void {
                 },
                 c.SDL_EVENT_KEY_DOWN => {
                     switch (event.key.key) {
-                        c.SDLK_A => {
-                            try console.info("some information");
-                        },
-                        c.SDLK_S => {
-                            try console.warn("Uh oh!.. something bad happened");
-                        },
-                        c.SDLK_D => {
-                            try console.critical("WE ARE GOING TO DIE!!11!");
-                        },
                         c.SDLK_UP => {
                             console.scale += 1;
                         },
