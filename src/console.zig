@@ -22,7 +22,7 @@ pub const Console = struct {
     renderer: *c.SDL_Renderer,
 
     // Log Level
-    comptime level: Level = .warn,
+    comptime level: Level = .info,
 
     // Console stuff
     x: f32,
@@ -63,7 +63,6 @@ pub const Console = struct {
         var scale_y: f32 = 0;
         try sdl(c.SDL_GetRenderDrawColor(self.renderer, &r, &g, &b, &a));
         try sdl(c.SDL_GetRenderScale(self.renderer, &scale_x, &scale_y));
-        try sdl(c.SDL_SetRenderDrawColor(self.renderer, 255, 255, 255, 255));
         try sdl(c.SDL_SetRenderScale(self.renderer, self.scale, self.scale));
 
         var i: usize = self.entries.items.len;
@@ -75,6 +74,13 @@ pub const Console = struct {
 
             switch (entry.level) {
                 .critical => {
+                    try sdl(c.SDL_SetRenderDrawColor(
+                        self.renderer,
+                        255,
+                        0,
+                        0,
+                        255,
+                    ));
                     try sdl(c.SDL_RenderDebugTextFormat(
                         self.renderer,
                         self.x,
@@ -84,6 +90,13 @@ pub const Console = struct {
                     ));
                 },
                 .warn => {
+                    try sdl(c.SDL_SetRenderDrawColor(
+                        self.renderer,
+                        255,
+                        128,
+                        0,
+                        255,
+                    ));
                     try sdl(c.SDL_RenderDebugTextFormat(
                         self.renderer,
                         self.x,
@@ -93,6 +106,13 @@ pub const Console = struct {
                     ));
                 },
                 .info => {
+                    try sdl(c.SDL_SetRenderDrawColor(
+                        self.renderer,
+                        255,
+                        255,
+                        255,
+                        255,
+                    ));
                     try sdl(c.SDL_RenderDebugTextFormat(
                         self.renderer,
                         self.x,
