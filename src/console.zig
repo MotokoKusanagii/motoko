@@ -4,18 +4,32 @@ const sdl = c.sdl;
 
 const char_size = c.SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE;
 
+pub const Level = enum(u8) {
+    critical = 0,
+    warn = 1,
+    info = 2,
+};
+
+pub const Entry = struct {
+    level: Level,
+    text: [*:0]const u8,
+};
+
 pub const Console = struct {
     allocator: std.mem.Allocator,
 
     // SDL stuff
     renderer: *c.SDL_Renderer,
 
+    // Log Level
+    comptime level: Level = .warn,
+
     // Console stuff
     x: f32,
     y: f32,
     scale: f32,
     padding: f32,
-    entries: std.ArrayList([:0]const u8),
+    entries: std.ArrayList(Entry),
 
     pub fn init(
         allocator: std.mem.Allocator,
@@ -32,7 +46,7 @@ pub const Console = struct {
             .y = y,
             .scale = scale,
             .padding = padding,
-            .entries = std.ArrayList([:0]const u8).init(allocator),
+            .entries = std.ArrayList(Entry).init(allocator),
         };
     }
 
@@ -52,23 +66,58 @@ pub const Console = struct {
         try sdl(c.SDL_SetRenderDrawColor(self.renderer, 255, 255, 255, 255));
         try sdl(c.SDL_SetRenderScale(self.renderer, self.scale, self.scale));
 
+        const min_level: u8 = @intFromEnum(self.level);
+
         var i: usize = self.entries.items.len;
         var iteration: usize = 0;
-        while (i > 0) : (iteration += 1) {
+        while (i > 0) {
             i -= 1;
-            try sdl(c.SDL_RenderDebugText(
-                self.renderer,
-                self.x,
-                self.y + calcY(iteration, self.padding),
-                self.entries.items[i],
-            ));
+            const entry = self.entries.items[i];
+            const level_num: u8 = @intFromEnum(entry.level);
+
+            // TODO: Place level guard @ addEntry
+            if (level_num > min_level) {
+                continue;
+            }
+
+            switch (entry.level) {
+                .critical => {
+                    try sdl(c.SDL_RenderDebugTextFormat(
+                        self.renderer,
+                        self.x,
+                        self.y + calcY(iteration, self.padding),
+                        "Critical: %s",
+                        entry.text,
+                    ));
+                },
+                .warn => {
+                    try sdl(c.SDL_RenderDebugTextFormat(
+                        self.renderer,
+                        self.x,
+                        self.y + calcY(iteration, self.padding),
+                        "Warn: %s",
+                        entry.text,
+                    ));
+                },
+                .info => {
+                    try sdl(c.SDL_RenderDebugTextFormat(
+                        self.renderer,
+                        self.x,
+                        self.y + calcY(iteration, self.padding),
+                        "Info: %s",
+                        entry.text,
+                    ));
+                },
+            }
+
+            iteration += 1;
         }
         try sdl(c.SDL_SetRenderDrawColor(self.renderer, r, g, b, a));
         try sdl(c.SDL_SetRenderScale(self.renderer, scale_x, scale_y));
     }
 
-    pub fn addEntry(self: *Console, text: [:0]const u8) !void {
-        try self.entries.append(text);
+    pub fn addEntry(self: *Console, entry: Entry) !void {
+        try self.entries.append(entry);
     }
 
     fn calcY(index: usize, padding: f32) f32 {

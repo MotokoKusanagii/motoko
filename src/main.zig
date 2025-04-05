@@ -19,6 +19,11 @@ pub fn main() !void {
     defer c.SDL_DestroyRenderer(renderer);
 
     var da = std.heap.DebugAllocator(.{}).init;
+    defer {
+        if (da.deinit() == .leak) {
+            @panic("Errrrmmm leaks detected!");
+        }
+    }
     const allocator = da.allocator();
 
     var console = Console.init(allocator, renderer, 0, 0, 2, 5);
@@ -34,10 +39,19 @@ pub fn main() !void {
                 c.SDL_EVENT_KEY_DOWN => {
                     switch (event.key.key) {
                         c.SDLK_A => {
-                            try console.addEntry("this is an entry");
+                            try console.addEntry(.{ .level = .info, .text = "some information" });
+                        },
+                        c.SDLK_S => {
+                            try console.addEntry(.{ .level = .warn, .text = "Uh oh!.. something happened" });
                         },
                         c.SDLK_D => {
-                            try console.addEntry("another entry");
+                            try console.addEntry(.{ .level = .critical, .text = "we are going to die" });
+                        },
+                        c.SDLK_UP => {
+                            console.scale += 1;
+                        },
+                        c.SDLK_DOWN => {
+                            console.scale -= 1;
                         },
                         else => {},
                     }
