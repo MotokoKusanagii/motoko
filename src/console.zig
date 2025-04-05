@@ -55,6 +55,8 @@ pub const Console = struct {
     }
 
     pub fn draw(self: Console) !void {
+        // TODO: Calculate how many entries can be rendered to fix potential
+        // performance problems.
         var r: u8 = 0;
         var g: u8 = 0;
         var b: u8 = 0;
@@ -129,6 +131,8 @@ pub const Console = struct {
         try sdl(c.SDL_SetRenderScale(self.renderer, scale_x, scale_y));
     }
 
+    // TODO: Discard a % of entries after reaching a specific number of entries
+    // Otherwise the memory will grow unchecked.
     pub fn addEntry(self: *Console, entry: Entry) !void {
         const level_min: u8 = @intFromEnum(self.level);
         const level_num: u8 = @intFromEnum(entry.level);
@@ -138,6 +142,18 @@ pub const Console = struct {
         }
 
         try self.entries.append(entry);
+    }
+
+    pub fn info(self: *Console, text: [*:0]const u8) !void {
+        try self.addEntry(.{ .level = .info, .text = text });
+    }
+
+    pub fn warn(self: *Console, text: [*:0]const u8) !void {
+        try self.addEntry(.{ .level = .warn, .text = text });
+    }
+
+    pub fn critical(self: *Console, text: [*:0]const u8) !void {
+        try self.addEntry(.{ .level = .critical, .text = text });
     }
 
     fn calcY(index: usize, padding: f32) f32 {

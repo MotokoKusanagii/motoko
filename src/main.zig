@@ -39,13 +39,13 @@ pub fn main() !void {
                 c.SDL_EVENT_KEY_DOWN => {
                     switch (event.key.key) {
                         c.SDLK_A => {
-                            try console.addEntry(.{ .level = .info, .text = "some information" });
+                            try console.info("some information");
                         },
                         c.SDLK_S => {
-                            try console.addEntry(.{ .level = .warn, .text = "Uh oh!.. something happened" });
+                            try console.warn("Uh oh!.. something bad happened");
                         },
                         c.SDLK_D => {
-                            try console.addEntry(.{ .level = .critical, .text = "we are going to die" });
+                            try console.critical("WE ARE GOING TO DIE!!11!");
                         },
                         c.SDLK_UP => {
                             console.scale += 1;
