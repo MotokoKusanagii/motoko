@@ -51,8 +51,17 @@ pub const Console = struct {
         try sdl(c.SDL_GetRenderScale(self.renderer, &scale_x, &scale_y));
         try sdl(c.SDL_SetRenderDrawColor(self.renderer, 255, 255, 255, 255));
         try sdl(c.SDL_SetRenderScale(self.renderer, self.scale, self.scale));
-        for (self.entries.items, 0..) |item, i| {
-            try sdl(c.SDL_RenderDebugText(self.renderer, self.x, self.y + calcY(i, self.padding), item));
+
+        var i: usize = self.entries.items.len;
+        var iteration: usize = 0;
+        while (i > 0) : (iteration += 1) {
+            i -= 1;
+            try sdl(c.SDL_RenderDebugText(
+                self.renderer,
+                self.x,
+                self.y + calcY(iteration, self.padding),
+                self.entries.items[i],
+            ));
         }
         try sdl(c.SDL_SetRenderDrawColor(self.renderer, r, g, b, a));
         try sdl(c.SDL_SetRenderScale(self.renderer, scale_x, scale_y));
