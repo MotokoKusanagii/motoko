@@ -5,9 +5,9 @@ const sdl = c.sdl;
 const char_size = c.SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE;
 
 pub const Level = enum(u8) {
-    critical = 0,
+    info = 0,
     warn = 1,
-    info = 2,
+    critical = 2,
 };
 
 pub const Entry = struct {
@@ -66,19 +66,12 @@ pub const Console = struct {
         try sdl(c.SDL_SetRenderDrawColor(self.renderer, 255, 255, 255, 255));
         try sdl(c.SDL_SetRenderScale(self.renderer, self.scale, self.scale));
 
-        const min_level: u8 = @intFromEnum(self.level);
-
         var i: usize = self.entries.items.len;
         var iteration: usize = 0;
         while (i > 0) {
             i -= 1;
-            const entry = self.entries.items[i];
-            const level_num: u8 = @intFromEnum(entry.level);
 
-            // TODO: Place level guard @ addEntry
-            if (level_num > min_level) {
-                continue;
-            }
+            const entry = self.entries.items[i];
 
             switch (entry.level) {
                 .critical => {
@@ -117,6 +110,13 @@ pub const Console = struct {
     }
 
     pub fn addEntry(self: *Console, entry: Entry) !void {
+        const level_min: u8 = @intFromEnum(self.level);
+        const level_num: u8 = @intFromEnum(entry.level);
+
+        if (level_min > level_num) {
+            return;
+        }
+
         try self.entries.append(entry);
     }
 
