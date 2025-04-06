@@ -1,8 +1,9 @@
 const std = @import("std");
 const gl = @import("gl");
 const c = @import("c.zig");
-const Console = @import("console.zig").Console;
 const sdl = c.sdl;
+
+const Console = @import("console.zig").Console;
 
 const text_scale = 2.5;
 const char_size = c.SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE;
