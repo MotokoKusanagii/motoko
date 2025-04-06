@@ -12,7 +12,7 @@ pub const Level = enum(u8) {
 
 pub const Entry = struct {
     level: Level,
-    text: [*:0]const u8,
+    text: [:0]const u8,
 };
 
 pub const Console = struct {
@@ -51,6 +51,10 @@ pub const Console = struct {
     }
 
     pub fn deinit(self: *Console) void {
+        for (self.entries.items) |entry| {
+            const mutable_text = @constCast(entry.text);
+            self.allocator.free(mutable_text);
+        }
         self.entries.deinit();
     }
 
@@ -88,7 +92,7 @@ pub const Console = struct {
                         self.x,
                         self.y + calcY(iteration, self.padding),
                         "Critical: %s",
-                        entry.text,
+                        entry.text.ptr,
                     ));
                 },
                 .warn => {
@@ -104,7 +108,7 @@ pub const Console = struct {
                         self.x,
                         self.y + calcY(iteration, self.padding),
                         "Warn: %s",
-                        entry.text,
+                        entry.text.ptr,
                     ));
                 },
                 .info => {
@@ -120,7 +124,7 @@ pub const Console = struct {
                         self.x,
                         self.y + calcY(iteration, self.padding),
                         "Info: %s",
-                        entry.text,
+                        entry.text.ptr,
                     ));
                 },
             }
@@ -144,16 +148,25 @@ pub const Console = struct {
         try self.entries.append(entry);
     }
 
-    pub fn info(self: *Console, text: [*:0]const u8) !void {
-        try self.addEntry(.{ .level = .info, .text = text });
+    pub fn info(self: *Console, text: [:0]const u8) !void {
+        try self.addEntry(.{
+            .level = .info,
+            .text = try self.allocator.dupeZ(u8, text),
+        });
     }
 
-    pub fn warn(self: *Console, text: [*:0]const u8) !void {
-        try self.addEntry(.{ .level = .warn, .text = text });
+    pub fn warn(self: *Console, text: [:0]const u8) !void {
+        try self.addEntry(.{
+            .level = .warn,
+            .text = try self.allocator.dupeZ(u8, text),
+        });
     }
 
-    pub fn critical(self: *Console, text: [*:0]const u8) !void {
-        try self.addEntry(.{ .level = .critical, .text = text });
+    pub fn critical(self: *Console, text: [:0]const u8) !void {
+        try self.addEntry(.{
+            .level = .warn,
+            .text = try self.allocator.dupeZ(u8, text),
+        });
     }
 
     fn calcY(index: usize, padding: f32) f32 {
