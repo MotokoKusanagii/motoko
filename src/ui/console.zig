@@ -1,5 +1,5 @@
 const std = @import("std");
-const c = @import("c.zig");
+const c = @import("../c.zig");
 const sdl = c.sdl;
 
 const char_size = c.SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE;

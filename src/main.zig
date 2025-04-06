@@ -3,7 +3,7 @@ const gl = @import("gl");
 const c = @import("c.zig");
 const sdl = c.sdl;
 
-const Console = @import("console.zig").Console;
+const Console = @import("ui.zig").Console;
 const Nes = @import("nes.zig").Nes;
 
 const text_scale = 2.5;
