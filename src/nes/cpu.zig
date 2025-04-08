@@ -1,5 +1,6 @@
 const std = @import("std");
 const contracts = @import("../contracts.zig");
+const instruction = @import("instruction.zig");
 
 pub const Status = struct {
     data: u8,
@@ -52,17 +53,23 @@ pub fn Cpu(Bus: type) type {
         y: u8,
 
         // Bus
-        bus: ?*Bus,
+        bus: *Bus,
 
-        pub const init = Self{
-            .status = .init,
-            .pc = 0x0000,
-            .sp = 0x00,
-            .a = 0x00,
-            .x = 0x00,
-            .y = 0x00,
-            .bus = null,
-        };
+        // Meta
+        cycles_left: u8,
+
+        pub fn init(bus: *Bus) Self {
+            return .{
+                .status = .init,
+                .pc = 0x0000,
+                .sp = 0x00,
+                .a = 0x00,
+                .x = 0x00,
+                .y = 0x00,
+                .bus = bus,
+                .cycles_left = 0x00,
+            };
+        }
 
         pub fn powerOn(self: *Self) void {
             self.a = 0;
@@ -81,8 +88,23 @@ pub fn Cpu(Bus: type) type {
             self.status.set(.i, true);
         }
 
-        pub fn clock(self: Self) void {
-            _ = self;
+        pub fn clock(self: *Self) void {
+            if (self.cycles_left == 0) {
+                const opcode = self.readPc();
+                const decode = instruction.table[opcode];
+
+                self.cycles_left = decode.cycles;
+
+                const c1 = decode.addr_mode(self);
+                const c2 = decode.instruction(self);
+
+                if (c1 and c2) {
+                    self.cycles_left += 1;
+                }
+            }
+
+            self.cycles_left -= 1;
+
             // Check if self.cycles is zero
             // Read instruction at self.pc
             // address mode
@@ -90,22 +112,49 @@ pub fn Cpu(Bus: type) type {
             // check extra cycle
 
         }
+
+        pub fn write(self: Self, addr: u16, value: u8) void {
+            self.bus.write(addr, value);
+        }
+
+        pub fn read(self: Self, addr: u16) u8 {
+            return self.bus.read(addr);
+        }
+
+        /// Read ad addr pc and inc pc by 1
+        pub fn readPc(self: *Self) u8 {
+            const value = self.read(self.pc);
+            self.pc += 1;
+            return value;
+        }
     };
 }
 
+pub const ActiveBus = TestBus;
+
 const TestBus = struct {
+    data: [65535]u8,
+
     pub fn read(self: TestBus, addr: u16) u8 {
-        _ = self;
-        _ = addr;
+        return self.data[addr];
     }
-    pub fn write(self: TestBus, addr: u16, value: u8) void {
-        _ = self;
-        _ = addr;
-        _ = value;
+    pub fn write(self: *TestBus, addr: u16, value: u8) void {
+        self.data[addr] = value;
     }
 };
 
 test "cpu init" {
-    const cpu = Cpu(TestBus).init;
-    _ = cpu;
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    var cpu = Cpu(TestBus).init(&bus);
+    cpu.write(0x00FF, 0x17);
+    cpu.write(0x5978, 0x69);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(bus.data[0x00FF], 0x17);
+    try std.testing.expectEqual(bus.data[0x5978], 0x69);
 }
