@@ -1,6 +1,15 @@
 const std = @import("std");
 const contracts = @import("../contracts.zig");
-const instruction = @import("instruction.zig");
+
+const BusInterface = contracts.Interface(struct {
+    pub fn read(_: @This(), addr: u16) u8 {
+        _ = addr;
+    }
+    pub fn write(_: @This(), addr: u16, value: u8) void {
+        _ = addr;
+        _ = value;
+    }
+});
 
 pub const Status = struct {
     data: u8,
@@ -28,15 +37,35 @@ pub const Status = struct {
     }
 };
 
-const BusInterface = contracts.Interface(struct {
-    pub fn read(_: @This(), addr: u16) u8 {
-        _ = addr;
+pub const Instruction = struct {
+    pub const Type = enum {
+        unknown,
+    };
+
+    pub const Mode = enum {
+        unknown,
+    };
+
+    type: Type = .unknown,
+    mode: Mode = .unknown,
+    cycles: u8,
+
+    pub fn run(self: Instruction, cpu: *Cpu(TestBus)) bool {
+        _ = self;
+        _ = cpu;
+        return false;
     }
-    pub fn write(_: @This(), addr: u16, value: u8) void {
-        _ = addr;
-        _ = value;
+
+    pub fn get(opcode: u8) Instruction {
+        return switch (opcode) {
+            else => .{
+                .type = .unknown,
+                .mode = .unknown,
+                .cycles = 1,
+            },
+        };
     }
-});
+};
 
 pub fn Cpu(Bus: type) type {
     BusInterface.validate(Bus);
@@ -91,16 +120,11 @@ pub fn Cpu(Bus: type) type {
         pub fn clock(self: *Self) void {
             if (self.cycles_left == 0) {
                 const opcode = self.readPc();
-                const decode = instruction.table[opcode];
+                const decode = Instruction.get(opcode);
 
                 self.cycles_left = decode.cycles;
 
-                const c1 = decode.addr_mode(self);
-                const c2 = decode.instruction(self);
-
-                if (c1 and c2) {
-                    self.cycles_left += 1;
-                }
+                self.cycles_left += if (decode.run(self)) 1 else 0;
             }
 
             self.cycles_left -= 1;
@@ -129,8 +153,6 @@ pub fn Cpu(Bus: type) type {
         }
     };
 }
-
-pub const ActiveBus = TestBus;
 
 const TestBus = struct {
     data: [65535]u8,
