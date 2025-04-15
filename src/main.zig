@@ -64,7 +64,3 @@ pub fn main() !void {
         try sdl(c.SDL_RenderPresent(renderer));
     }
 }
-
-test {
-    _ = @import("nes/cpu.zig");
-}

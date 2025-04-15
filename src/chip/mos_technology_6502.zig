@@ -1,5 +1,5 @@
 const std = @import("std");
-const contracts = @import("../contracts.zig");
+const contracts = @import("contracts");
 
 const BusInterface = contracts.Interface(struct {
     pub fn read(_: @This(), addr: u16) u8 {
@@ -50,7 +50,7 @@ pub const Instruction = struct {
     mode: Mode = .unknown,
     cycles: u8,
 
-    pub fn run(self: Instruction, cpu: *Cpu(TestBus)) bool {
+    pub fn run(self: Instruction, comptime CpuT: type, cpu: *CpuT) bool {
         _ = self;
         _ = cpu;
         return false;
@@ -67,11 +67,11 @@ pub const Instruction = struct {
     }
 };
 
-pub fn Cpu(Bus: type) type {
+pub fn Chip(Bus: type) type {
     BusInterface.validate(Bus);
 
     return struct {
-        const Self = @This();
+        pub const Self = @This();
 
         // Register
         status: Status,
@@ -119,22 +119,17 @@ pub fn Cpu(Bus: type) type {
 
         pub fn clock(self: *Self) void {
             if (self.cycles_left == 0) {
-                const opcode = self.readPc();
+                const opcode = self.read(self.pc);
+                self.pc += 1;
+
                 const decode = Instruction.get(opcode);
 
                 self.cycles_left = decode.cycles;
 
-                self.cycles_left += if (decode.run(self)) 1 else 0;
+                self.cycles_left += if (decode.run(Self, self)) 1 else 0;
             }
 
             self.cycles_left -= 1;
-
-            // Check if self.cycles is zero
-            // Read instruction at self.pc
-            // address mode
-            // instruction
-            // check extra cycle
-
         }
 
         pub fn write(self: Self, addr: u16, value: u8) void {
@@ -143,13 +138,6 @@ pub fn Cpu(Bus: type) type {
 
         pub fn read(self: Self, addr: u16) u8 {
             return self.bus.read(addr);
-        }
-
-        /// Read ad addr pc and inc pc by 1
-        pub fn readPc(self: *Self) u8 {
-            const value = self.read(self.pc);
-            self.pc += 1;
-            return value;
         }
     };
 }
@@ -165,13 +153,13 @@ const TestBus = struct {
     }
 };
 
-test "cpu init" {
+test "cpu read/write" {
     var bus = TestBus{
         .data = undefined,
     };
     @memset(&bus.data, 0);
 
-    var cpu = Cpu(TestBus).init(&bus);
+    var cpu = Chip(TestBus).init(&bus);
     cpu.write(0x00FF, 0x17);
     cpu.write(0x5978, 0x69);
 

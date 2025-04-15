@@ -44,11 +44,31 @@ pub fn build(b: *std.Build) void {
     run_step.dependOn(&run_cmd.step);
 
     const test_step = b.step("test", "Run unit tests");
-    const unit_tests = b.addTest(.{
-        .root_module = exe_mod,
-        .target = target,
-        .optimize = optimize,
-    });
-    const run_unit_tests = b.addRunArtifact(unit_tests);
-    test_step.dependOn(&run_unit_tests.step);
+
+    for (tests) |t| {
+        const test_mod = b.createModule(.{
+            .root_source_file = b.path(t),
+            .target = target,
+            .optimize = optimize,
+        });
+
+        test_mod.addAnonymousImport("contracts", .{
+            .root_source_file = b.path("src/contracts.zig"),
+            .target = target,
+            .optimize = optimize,
+        });
+
+        const unit_tests = b.addTest(.{
+            .root_module = test_mod,
+            .target = target,
+            .optimize = optimize,
+        });
+
+        const run_unit_tests = b.addRunArtifact(unit_tests);
+        test_step.dependOn(&run_unit_tests.step);
+    }
 }
+
+const tests = [_][]const u8{
+    "src/chip/mos_technology_6502.zig",
+};
