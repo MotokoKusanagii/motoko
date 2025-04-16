@@ -48,7 +48,7 @@ pub const Instruction = struct {
         sei,
         cld,
         sed,
-        // CLV
+        clv,
         unknown,
     };
 
@@ -74,6 +74,7 @@ pub const Instruction = struct {
             .sei => instructions.sei(cpu, address_return),
             .cld => instructions.cld(cpu, address_return),
             .sed => instructions.sed(cpu, address_return),
+            .clv => instructions.clv(cpu, address_return),
             .unknown => instructions.type_unknown(cpu, address_return),
         };
     }
@@ -97,6 +98,11 @@ pub const Instruction = struct {
             },
             0x78 => .{
                 .type = .sei,
+                .mode = .implied,
+                .cycles = 2,
+            },
+            0xB8 => .{
+                .type = .clv,
                 .mode = .implied,
                 .cycles = 2,
             },

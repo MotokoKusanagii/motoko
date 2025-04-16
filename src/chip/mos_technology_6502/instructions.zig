@@ -185,6 +185,34 @@ test "sed implied" {
     try std.testing.expectEqual(cpu.status.isSet(.d), true);
 }
 
+/// CLV - Clear Overflow
+/// `V = 0`
+/// 0xB8 - 1 byte - 2 cycles - implied
+pub fn clv(cpu: anytype, _: AddressReturn) bool {
+    cpu.status.set(.v, false);
+    return false;
+}
+
+test "clv implied" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0xB8;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare chip
+    cpu.status.set(.v, true);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(cpu.status.isSet(.d), false);
+}
+
 pub fn type_unknown(_: anytype, _: AddressReturn) bool {
     @panic("unknown instruction type!");
 }
