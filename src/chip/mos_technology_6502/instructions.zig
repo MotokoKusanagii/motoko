@@ -46,9 +46,14 @@ test "txs implied" {
 
 /// TSX - Transfer Stack Pointer to X
 /// `X = SP`
+/// Flags:
+///     z = result == 0
+///     n = result & 0x80 != 0
 /// 0xBA - 1 byte - 2 cycles - implied
 pub fn tsx(cpu: anytype, _: AddressReturn) bool {
     cpu.x = cpu.sp;
+    cpu.status.set(.z, cpu.x == 0);
+    cpu.status.set(.n, cpu.x & 0x80 != 0);
     return false;
 }
 
@@ -70,6 +75,46 @@ test "tsx implied" {
     cpu.clock();
 
     try std.testing.expectEqual(cpu.x, 0xAA);
+}
+
+test "tsx flag z" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0xBA;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare chip
+    cpu.sp = 0x00;
+
+    cpu.clock();
+
+    try std.testing.expect(cpu.status.isSet(.z));
+}
+
+test "tsx flag n" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0xBA;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare chip
+    cpu.sp = 0b10010100;
+
+    cpu.clock();
+
+    try std.testing.expect(cpu.status.isSet(.n));
 }
 
 /// CLC - Clear Carry
