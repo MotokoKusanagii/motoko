@@ -29,6 +29,84 @@ pub fn address_unknown(_: anytype) AddressReturn {
     @panic("unknown address mode!");
 }
 
+/// PLA - Pull A
+/// `SP = SP + 1`
+/// `A = ($0100 + SP)`
+/// Flags:
+///     z = result == 0
+///     n = result & 0x80 != 0
+/// 0x68 - 1 byte - 4 cycles - implied
+pub fn pla(cpu: anytype, _: AddressReturn) bool {
+    cpu.sp +%= 1;
+    cpu.a = micro.readSp(cpu);
+    cpu.status.set(.z, cpu.a == 0);
+    cpu.status.set(.n, cpu.a & 0x80 != 0);
+    return false;
+}
+
+test "pla implied" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0x68;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.sp = 0x58;
+    bus.data[0x59 + 0x0100] = 0xAA;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xAA, cpu.a);
+}
+
+test "pla flag z" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0x68;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.sp = 0xA1;
+    bus.data[0xA2 + 0x0100] = 0x00;
+
+    cpu.clock();
+
+    try std.testing.expect(cpu.status.isSet(.z));
+}
+
+test "pla flag n" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0x68;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.sp = 0x82;
+    bus.data[0x83 + 0x0100] = 0xAA;
+
+    cpu.clock();
+
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
 /// PHP - Push Processor Status
 /// `($0100 + SP) = NV11DIZC`
 /// `SP = SP - 1`

@@ -42,6 +42,7 @@ pub const Status = struct {
 pub const Instruction = struct {
     pub const Type = enum {
         // Stack
+        pla,
         php,
         plp,
         txs,
@@ -75,6 +76,7 @@ pub const Instruction = struct {
         };
 
         return switch (self.type) {
+            .pla => instructions.pla(cpu, address_return),
             .php => instructions.php(cpu, address_return),
             .plp => instructions.plp(cpu, address_return),
             .txs => instructions.txs(cpu, address_return),
@@ -117,6 +119,11 @@ pub const Instruction = struct {
                 .type = .cli,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0x68 => .{
+                .type = .pla,
+                .mode = .implied,
+                .cycles = 4,
             },
             0x78 => .{
                 .type = .sei,
