@@ -1,5 +1,7 @@
 const std = @import("std");
 const contracts = @import("contracts");
+const instructions = @import("mos_technology_6502/instructions.zig");
+const TestBus = @import("mos_technology_6502/testing.zig").TestBus;
 
 const BusInterface = contracts.Interface(struct {
     pub fn read(_: @This(), addr: u16) u8 {
@@ -39,10 +41,12 @@ pub const Status = struct {
 
 pub const Instruction = struct {
     pub const Type = enum {
+        clc,
         unknown,
     };
 
     pub const Mode = enum {
+        implied,
         unknown,
     };
 
@@ -51,13 +55,24 @@ pub const Instruction = struct {
     cycles: u8,
 
     pub fn run(self: Instruction, comptime CpuT: type, cpu: *CpuT) bool {
-        _ = self;
-        _ = cpu;
-        return false;
+        const address_return = switch (self.mode) {
+            .implied => instructions.implied(cpu),
+            .unknown => instructions.address_unknown(cpu),
+        };
+
+        return switch (self.type) {
+            .clc => instructions.clc(cpu, address_return),
+            .unknown => instructions.type_unknown(cpu, address_return),
+        };
     }
 
-    pub fn get(opcode: u8) Instruction {
+    pub fn decode(opcode: u8) Instruction {
         return switch (opcode) {
+            0x18 => .{
+                .type = .clc,
+                .mode = .implied,
+                .cycles = 2,
+            },
             else => .{
                 .type = .unknown,
                 .mode = .unknown,
@@ -122,7 +137,7 @@ pub fn Chip(Bus: type) type {
                 const opcode = self.read(self.pc);
                 self.pc += 1;
 
-                const decode = Instruction.get(opcode);
+                const decode = Instruction.decode(opcode);
 
                 self.cycles_left = decode.cycles;
 
@@ -142,17 +157,6 @@ pub fn Chip(Bus: type) type {
     };
 }
 
-const TestBus = struct {
-    data: [65535]u8,
-
-    pub fn read(self: TestBus, addr: u16) u8 {
-        return self.data[addr];
-    }
-    pub fn write(self: *TestBus, addr: u16, value: u8) void {
-        self.data[addr] = value;
-    }
-};
-
 test "cpu read/write" {
     var bus = TestBus{
         .data = undefined,
@@ -167,4 +171,22 @@ test "cpu read/write" {
 
     try std.testing.expectEqual(bus.data[0x00FF], 0x17);
     try std.testing.expectEqual(bus.data[0x5978], 0x69);
+}
+
+test "cpu register" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.status.set(.d, true);
+    cpu.status.set(.v, true);
+
+    try std.testing.expect(cpu.status.isSet(.d));
+    try std.testing.expectEqual(cpu.status.data, 0b01001000);
+}
+
+test "instructions" {
+    std.testing.refAllDecls(instructions);
 }

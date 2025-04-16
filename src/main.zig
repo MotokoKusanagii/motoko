@@ -4,7 +4,7 @@ const c = @import("c.zig");
 const sdl = c.sdl;
 
 const Console = @import("ui.zig").Console;
-const Cpu = @import("nes/cpu.zig").Cpu;
+const Chip = @import("chip/mos_technology_6502.zig");
 
 const text_scale = 2.5;
 const char_size = c.SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE;
