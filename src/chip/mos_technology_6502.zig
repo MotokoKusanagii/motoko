@@ -42,6 +42,7 @@ pub const Status = struct {
 pub const Instruction = struct {
     pub const Type = enum {
         clc,
+        sec,
         cld,
         unknown,
     };
@@ -63,6 +64,7 @@ pub const Instruction = struct {
 
         return switch (self.type) {
             .clc => instructions.clc(cpu, address_return),
+            .sec => instructions.sec(cpu, address_return),
             .cld => instructions.cld(cpu, address_return),
             .unknown => instructions.type_unknown(cpu, address_return),
         };
@@ -72,6 +74,11 @@ pub const Instruction = struct {
         return switch (opcode) {
             0x18 => .{
                 .type = .clc,
+                .mode = .implied,
+                .cycles = 2,
+            },
+            0x38 => .{
+                .type = .sec,
                 .mode = .implied,
                 .cycles = 2,
             },

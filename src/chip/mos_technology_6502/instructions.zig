@@ -47,6 +47,34 @@ test "clc implied" {
     try std.testing.expectEqual(cpu.status.isSet(.c), false);
 }
 
+/// SEC - Set Carry
+/// `C = 1`
+/// 0x38 - 1 byte - 2 cycles - implied
+pub fn sec(cpu: anytype, _: AddressReturn) bool {
+    cpu.status.set(.c, true);
+    return false;
+}
+
+test "sec implied" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0x38;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare chip
+    cpu.status.set(.c, false);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(cpu.status.isSet(.c), true);
+}
+
 /// CLD - CLear Decimal
 /// `D = 0`
 /// 0xD8 - 1 byte - 2 cycles - implied
