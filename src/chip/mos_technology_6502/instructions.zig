@@ -14,7 +14,7 @@ pub fn implied(_: anytype) AddressReturn {
 }
 
 pub fn address_unknown(_: anytype) AddressReturn {
-    @panic("This should not happen!");
+    @panic("unknown address mode!");
 }
 
 /// CLC - Clear Carry
@@ -158,5 +158,5 @@ test "cld implied" {
 }
 
 pub fn type_unknown(_: anytype, _: AddressReturn) bool {
-    @panic("This should not happen!");
+    @panic("unknown instruction type!");
 }
