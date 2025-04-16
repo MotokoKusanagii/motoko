@@ -16,6 +16,34 @@ pub fn address_unknown(_: anytype) AddressReturn {
     @panic("unknown address mode!");
 }
 
+/// TXS - Transfer X to Stack Pointer
+/// `SP = x`
+/// 0x9A - 1 byte - 2cycles - implied
+pub fn txs(cpu: anytype, _: AddressReturn) bool {
+    cpu.sp = cpu.x;
+    return false;
+}
+
+test "txs implied" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0x9A;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare chip
+    cpu.x = 0xBB;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(cpu.sp, 0xBB);
+}
+
 /// TSX - Transfer Stack Pointer to X
 /// `X = SP`
 /// 0xBA - 1 byte - 2 cycles - implied

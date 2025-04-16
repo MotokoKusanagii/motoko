@@ -42,6 +42,7 @@ pub const Status = struct {
 pub const Instruction = struct {
     pub const Type = enum {
         // Stack
+        txs,
         tsx,
         // Flags
         clc,
@@ -72,6 +73,7 @@ pub const Instruction = struct {
         };
 
         return switch (self.type) {
+            .txs => instructions.txs(cpu, address_return),
             .tsx => instructions.tsx(cpu, address_return),
             .clc => instructions.clc(cpu, address_return),
             .sec => instructions.sec(cpu, address_return),
@@ -104,6 +106,11 @@ pub const Instruction = struct {
             },
             0x78 => .{
                 .type = .sei,
+                .mode = .implied,
+                .cycles = 2,
+            },
+            0x9A => .{
+                .type = .txs,
                 .mode = .implied,
                 .cycles = 2,
             },
