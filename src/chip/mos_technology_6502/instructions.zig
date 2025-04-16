@@ -29,6 +29,37 @@ pub fn address_unknown(_: anytype) AddressReturn {
     @panic("unknown address mode!");
 }
 
+/// PHA - Push A
+/// `($0100 + SP) = A`
+/// `SP = SP - 1`
+/// 0x48 - 1 byte - 3 cycles - implied
+pub fn pha(cpu: anytype, _: AddressReturn) bool {
+    micro.writeSp(cpu, cpu.a);
+    cpu.sp -%= 1;
+    return false;
+}
+
+test "pha implied" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0x48;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.sp = 0xAB;
+    cpu.a = 0xFA;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xFA, bus.data[micro.getSpAbs(cpu) + 1]);
+}
+
 /// PLA - Pull A
 /// `SP = SP + 1`
 /// `A = ($0100 + SP)`
