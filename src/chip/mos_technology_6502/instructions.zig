@@ -1,6 +1,7 @@
 const std = @import("std");
 const TestBus = @import("testing.zig").TestBus;
 const Chip = @import("../mos_technology_6502.zig").Chip;
+const Status = @import("../mos_technology_6502.zig").Status;
 
 pub const AddressReturn = struct {
     cycle_request: bool,
@@ -9,6 +10,12 @@ pub const AddressReturn = struct {
 pub const micro = struct {
     pub fn readSp(cpu: anytype) u8 {
         return cpu.read(@as(u16, cpu.sp) + 0x0100);
+    }
+    pub fn writeSp(cpu: anytype, data: u8) void {
+        cpu.write(@as(u16, cpu.sp) + 0x0100, data);
+    }
+    pub fn getSpAbs(cpu: anytype) u16 {
+        return @as(u16, cpu.sp) + 0x0100;
     }
 };
 
@@ -20,6 +27,39 @@ pub fn implied(_: anytype) AddressReturn {
 
 pub fn address_unknown(_: anytype) AddressReturn {
     @panic("unknown address mode!");
+}
+
+/// PHP - Push Processor Status
+/// `($0100 + SP) = NV11DIZC`
+/// `SP = SP - 1`
+/// 0x08 - 1 byte - 3 cycles - implied
+pub fn php(cpu: anytype, _: AddressReturn) bool {
+    var local: Status = cpu.status;
+    local.set(.b, true);
+    local.set(.u, true);
+    micro.writeSp(cpu, local.data);
+    return false;
+}
+
+test "php implied" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0x08;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.sp = 0x14;
+    cpu.status.data = 0b11001101;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0b11111101, bus.data[micro.getSpAbs(cpu)]);
 }
 
 /// PLP - Pull Processor Status
