@@ -47,6 +47,34 @@ test "clc implied" {
     try std.testing.expectEqual(cpu.status.isSet(.c), false);
 }
 
+/// CLD - CLear Decimal
+/// `D = 0`
+/// 0xD8 - 1 byte - 2 cycles - implied
+pub fn cld(cpu: anytype, _: AddressReturn) bool {
+    cpu.status.set(.d, false);
+    return false;
+}
+
+test "cld implied" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0xD8;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare chip
+    cpu.status.set(.d, true);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(cpu.status.isSet(.d), false);
+}
+
 pub fn type_unknown(_: anytype, _: AddressReturn) bool {
     return false;
 }
