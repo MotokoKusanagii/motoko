@@ -116,6 +116,7 @@ pub fn php(cpu: anytype, _: AddressReturn) bool {
     local.set(.b, true);
     local.set(.u, true);
     micro.writeSp(cpu, local.data);
+    cpu.sp -%= 1;
     return false;
 }
 
@@ -137,7 +138,7 @@ test "php implied" {
 
     cpu.clock();
 
-    try std.testing.expectEqual(0b11111101, bus.data[micro.getSpAbs(cpu)]);
+    try std.testing.expectEqual(0b11111101, bus.data[micro.getSpAbs(cpu) + 1]);
 }
 
 /// PLP - Pull Processor Status
