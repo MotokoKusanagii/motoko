@@ -73,7 +73,7 @@ test "sec implied" {
     try std.testing.expectEqual(cpu.status.isSet(.c), true);
 }
 
-/// CLI - Set Interrupt Disable
+/// CLI - Clear Interrupt Disable
 /// `I = 0`
 /// 0x58 - 1 byte - 2 cycles - implied
 pub fn cli(cpu: anytype, _: AddressReturn) bool {
@@ -99,6 +99,34 @@ test "cli implied" {
     cpu.clock();
 
     try std.testing.expectEqual(cpu.status.isSet(.i), false);
+}
+
+/// SEI - Set interrupt Disable
+/// `I = 1`
+/// 0x78 - 1 byte - 2 cycles - implied
+pub fn sei(cpu: anytype, _: AddressReturn) bool {
+    cpu.status.set(.i, true);
+    return false;
+}
+
+test "sei implied" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0x78;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare chip
+    cpu.status.set(.i, false);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(cpu.status.isSet(.i), true);
 }
 
 /// CLD - CLear Decimal
