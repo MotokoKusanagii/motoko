@@ -34,6 +34,7 @@ zig build
 ## Todos
 
 - [ ] Make `mos_technology_6502` a proper interface
+- [ ] Chips should be their own module
 
 ## License
 
