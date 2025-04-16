@@ -157,6 +157,34 @@ test "cld implied" {
     try std.testing.expectEqual(cpu.status.isSet(.d), false);
 }
 
+/// SED - Set Decimal
+/// `D = 1`
+/// 0xF8 - 1 byte - 2 cycles - implied
+pub fn sed(cpu: anytype, _: AddressReturn) bool {
+    cpu.status.set(.d, true);
+    return false;
+}
+
+test "sed implied" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0xF8;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare chip
+    cpu.status.set(.d, false);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(cpu.status.isSet(.d), true);
+}
+
 pub fn type_unknown(_: anytype, _: AddressReturn) bool {
     @panic("unknown instruction type!");
 }
