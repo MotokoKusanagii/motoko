@@ -6,6 +6,12 @@ pub const AddressReturn = struct {
     cycle_request: bool,
 };
 
+pub const micro = struct {
+    pub fn readSp(cpu: anytype) u8 {
+        return cpu.read(@as(u16, cpu.sp) + 0x0100);
+    }
+};
+
 pub fn implied(_: anytype) AddressReturn {
     return .{
         .cycle_request = false,
@@ -16,9 +22,63 @@ pub fn address_unknown(_: anytype) AddressReturn {
     @panic("unknown address mode!");
 }
 
+/// PLP - Pull Processor Status
+/// `SP = SP + 1`
+/// `NVxxDIZC = ($0100 + SP)`
+/// Flags:
+///     c = result & 0x01 != 0
+///     z = result & 0x02 != 0
+///     i = result & 0x04 != 0
+///     d = result & 0x08 != 0
+///     v = result & 0x40 != 0
+///     n = result & 0x80 != 0
+/// 0x28 - 1 byte - 4 cycles - implied
+pub fn plp(cpu: anytype, _: AddressReturn) bool {
+    cpu.sp +%= 1;
+    const result = micro.readSp(cpu);
+    cpu.status.set(.c, result & 0x01 != 0);
+    cpu.status.set(.z, result & 0x02 != 0);
+    cpu.status.set(.i, result & 0x04 != 0);
+    cpu.status.set(.d, result & 0x08 != 0);
+    cpu.status.set(.v, result & 0x40 != 0);
+    cpu.status.set(.n, result & 0x80 != 0);
+    return false;
+}
+
+test "plp implied" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0x28;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.sp = 0x24;
+    bus.data[0x25 + 0x0100] = 0b11111111;
+    cpu.status.set(.b, false);
+    cpu.status.set(.u, false);
+
+    cpu.clock();
+
+    try std.testing.expect(cpu.status.isSet(.c));
+    try std.testing.expect(cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.i));
+    try std.testing.expect(cpu.status.isSet(.d));
+    try std.testing.expect(cpu.status.isSet(.v));
+    try std.testing.expect(cpu.status.isSet(.n));
+
+    try std.testing.expect(!cpu.status.isSet(.b));
+    try std.testing.expect(!cpu.status.isSet(.u));
+}
+
 /// TXS - Transfer X to Stack Pointer
 /// `SP = x`
-/// 0x9A - 1 byte - 2cycles - implied
+/// 0x9A - 1 byte - 2 cycles - implied
 pub fn txs(cpu: anytype, _: AddressReturn) bool {
     cpu.sp = cpu.x;
     return false;
@@ -36,7 +96,7 @@ test "txs implied" {
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
-    // Prepare chip
+    // Prepare data
     cpu.x = 0xBB;
 
     cpu.clock();
@@ -69,7 +129,7 @@ test "tsx implied" {
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
-    // Prepare chip
+    // Prepare data
     cpu.sp = 0xAA;
 
     cpu.clock();
@@ -89,7 +149,7 @@ test "tsx flag z" {
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
-    // Prepare chip
+    // Prepare data
     cpu.sp = 0x00;
 
     cpu.clock();
@@ -109,7 +169,7 @@ test "tsx flag n" {
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
-    // Prepare chip
+    // Prepare data
     cpu.sp = 0b10010100;
 
     cpu.clock();
@@ -137,7 +197,7 @@ test "clc implied" {
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
-    // Prepare chip
+    // Prepare data
     cpu.status.set(.c, true);
 
     cpu.clock();
@@ -165,7 +225,7 @@ test "sec implied" {
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
-    // Prepare chip
+    // Prepare data
     cpu.status.set(.c, false);
 
     cpu.clock();
@@ -193,7 +253,7 @@ test "cli implied" {
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
-    // Prepare chip
+    // Prepare data
     cpu.status.set(.i, true);
 
     cpu.clock();
@@ -221,7 +281,7 @@ test "sei implied" {
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
-    // Prepare chip
+    // Prepare data
     cpu.status.set(.i, false);
 
     cpu.clock();
@@ -249,7 +309,7 @@ test "cld implied" {
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
-    // Prepare chip
+    // Prepare data
     cpu.status.set(.d, true);
 
     cpu.clock();
@@ -277,7 +337,7 @@ test "sed implied" {
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
-    // Prepare chip
+    // Prepare data
     cpu.status.set(.d, false);
 
     cpu.clock();
@@ -305,7 +365,7 @@ test "clv implied" {
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
-    // Prepare chip
+    // Prepare data
     cpu.status.set(.v, true);
 
     cpu.clock();
