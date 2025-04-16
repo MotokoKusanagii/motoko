@@ -41,9 +41,14 @@ pub const Status = struct {
 
 pub const Instruction = struct {
     pub const Type = enum {
+        // Flags
         clc,
         sec,
+        cli,
+        // SEI
         cld,
+        // SED
+        // CLV
         unknown,
     };
 
@@ -65,6 +70,7 @@ pub const Instruction = struct {
         return switch (self.type) {
             .clc => instructions.clc(cpu, address_return),
             .sec => instructions.sec(cpu, address_return),
+            .cli => instructions.cli(cpu, address_return),
             .cld => instructions.cld(cpu, address_return),
             .unknown => instructions.type_unknown(cpu, address_return),
         };
@@ -79,6 +85,11 @@ pub const Instruction = struct {
             },
             0x38 => .{
                 .type = .sec,
+                .mode = .implied,
+                .cycles = 2,
+            },
+            0x58 => .{
+                .type = .cli,
                 .mode = .implied,
                 .cycles = 2,
             },
@@ -180,8 +191,6 @@ test "cpu read/write" {
     var cpu = Chip(TestBus).init(&bus);
     cpu.write(0x00FF, 0x17);
     cpu.write(0x5978, 0x69);
-
-    cpu.clock();
 
     try std.testing.expectEqual(bus.data[0x00FF], 0x17);
     try std.testing.expectEqual(bus.data[0x5978], 0x69);

@@ -14,9 +14,7 @@ pub fn implied(_: anytype) AddressReturn {
 }
 
 pub fn address_unknown(_: anytype) AddressReturn {
-    return .{
-        .cycle_request = false,
-    };
+    @panic("This should not happen!");
 }
 
 /// CLC - Clear Carry
@@ -75,6 +73,34 @@ test "sec implied" {
     try std.testing.expectEqual(cpu.status.isSet(.c), true);
 }
 
+/// CLI - Set Interrupt Disable
+/// `I = 0`
+/// 0x58 - 1 byte - 2 cycles - implied
+pub fn cli(cpu: anytype, _: AddressReturn) bool {
+    cpu.status.set(.i, false);
+    return false;
+}
+
+test "cli implied" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0x58;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare chip
+    cpu.status.set(.i, true);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(cpu.status.isSet(.i), false);
+}
+
 /// CLD - CLear Decimal
 /// `D = 0`
 /// 0xD8 - 1 byte - 2 cycles - implied
@@ -104,5 +130,5 @@ test "cld implied" {
 }
 
 pub fn type_unknown(_: anytype, _: AddressReturn) bool {
-    return false;
+    @panic("This should not happen!");
 }
