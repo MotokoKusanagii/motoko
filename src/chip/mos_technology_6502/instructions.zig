@@ -213,6 +213,27 @@ test "clv implied" {
     try std.testing.expectEqual(cpu.status.isSet(.d), false);
 }
 
+/// NOP - No Operation
+/// 0xEA - 1 byte - 2 cycles - implied
+pub fn nop(_: anytype, _: AddressReturn) bool {
+    return false;
+}
+
+test "nop implied" {
+    var bus = TestBus{
+        .data = undefined,
+    };
+    @memset(&bus.data, 0);
+
+    // Prepare instruction
+    bus.data[0xFFFC] = 0xEA;
+
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.clock();
+}
+
 pub fn type_unknown(_: anytype, _: AddressReturn) bool {
     @panic("unknown instruction type!");
 }

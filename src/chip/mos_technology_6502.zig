@@ -41,7 +41,6 @@ pub const Status = struct {
 
 pub const Instruction = struct {
     pub const Type = enum {
-        // Flags
         clc,
         sec,
         cli,
@@ -49,6 +48,7 @@ pub const Instruction = struct {
         cld,
         sed,
         clv,
+        nop,
         unknown,
     };
 
@@ -75,6 +75,7 @@ pub const Instruction = struct {
             .cld => instructions.cld(cpu, address_return),
             .sed => instructions.sed(cpu, address_return),
             .clv => instructions.clv(cpu, address_return),
+            .nop => instructions.nop(cpu, address_return),
             .unknown => instructions.type_unknown(cpu, address_return),
         };
     }
@@ -108,6 +109,11 @@ pub const Instruction = struct {
             },
             0xD8 => .{
                 .type = .cld,
+                .mode = .implied,
+                .cycles = 2,
+            },
+            0xEA => .{
+                .type = .nop,
                 .mode = .implied,
                 .cycles = 2,
             },
