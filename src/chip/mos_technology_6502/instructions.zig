@@ -5,6 +5,7 @@ const Status = @import("../mos_technology_6502.zig").Status;
 
 pub const AddressReturn = struct {
     cycle_request: bool,
+    address: u16,
 };
 
 pub const micro = struct {
@@ -17,16 +18,84 @@ pub const micro = struct {
     pub fn getSpAbs(cpu: anytype) u16 {
         return @as(u16, cpu.sp) + 0x0100;
     }
+    pub fn fetch16(cpu: anytype, address: u16) u16 {
+        const lo: u16 = cpu.read(address);
+        const hi: u16 = cpu.read(address + 1);
+        return (hi << 8) | lo;
+    }
 };
 
 pub fn implied(_: anytype) AddressReturn {
     return .{
         .cycle_request = false,
+        .address = 0x00,
+    };
+}
+
+pub fn absolute(cpu: anytype) AddressReturn {
+    const lo: u16 = cpu.read(cpu.pc);
+    cpu.pc += 1;
+    const hi: u16 = cpu.read(cpu.pc);
+    cpu.pc += 1;
+    return .{
+        .cycle_request = false,
+        .address = (hi << 8) | lo,
+    };
+}
+
+pub fn indirect(cpu: anytype) AddressReturn {
+    const ptr_lo: u16 = cpu.read(cpu.pc);
+    cpu.pc += 1;
+    const ptr_hi: u16 = cpu.read(cpu.pc);
+    cpu.pc += 1;
+
+    const ptr = (ptr_hi << 8) | ptr_lo;
+
+    const lo: u16 = cpu.read(ptr);
+    const hi: u16 = if (ptr_lo == 0x00FF) cpu.read(ptr & 0xFF00) else cpu.read(ptr + 1);
+
+    return .{
+        .cycle_request = false,
+        .address = (hi << 8) | lo,
     };
 }
 
 pub fn address_unknown(_: anytype) AddressReturn {
     @panic("unknown address mode!");
+}
+
+/// JMP - Jump
+/// `PC = Memory`
+/// 0x4C - 3 bytes - 3 cycles - absolute
+/// 0x6C - 3 bytes - 5 cycles - (indirect)
+pub fn jmp(cpu: anytype, ret: AddressReturn) bool {
+    cpu.pc = ret.address;
+    return false;
+}
+
+test "jmp absolute" {
+    // JMP $5025
+    var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x5025, cpu.pc);
+}
+
+test "jmp (indirect)" {
+    // JMP ($ABBA)
+    var bus = TestBus.setup(&.{ 0x6C, 0xBA, 0xAB });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    bus.data[0xABBA] = 0x34;
+    bus.data[0xABBB] = 0x12;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x1234, cpu.pc);
 }
 
 /// PHA - Push A
@@ -40,14 +109,7 @@ pub fn pha(cpu: anytype, _: AddressReturn) bool {
 }
 
 test "pha implied" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0x48;
-
+    var bus = TestBus.setup(&.{0x48});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -76,14 +138,7 @@ pub fn pla(cpu: anytype, _: AddressReturn) bool {
 }
 
 test "pla implied" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0x68;
-
+    var bus = TestBus.setup(&.{0x68});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -97,14 +152,7 @@ test "pla implied" {
 }
 
 test "pla flag z" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0x68;
-
+    var bus = TestBus.setup(&.{0x68});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -118,14 +166,7 @@ test "pla flag z" {
 }
 
 test "pla flag n" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0x68;
-
+    var bus = TestBus.setup(&.{0x68});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -152,14 +193,7 @@ pub fn php(cpu: anytype, _: AddressReturn) bool {
 }
 
 test "php implied" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0x08;
-
+    var bus = TestBus.setup(&.{0x08});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -196,14 +230,7 @@ pub fn plp(cpu: anytype, _: AddressReturn) bool {
 }
 
 test "plp implied" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0x28;
-
+    var bus = TestBus.setup(&.{0x28});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -235,14 +262,7 @@ pub fn txs(cpu: anytype, _: AddressReturn) bool {
 }
 
 test "txs implied" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0x9A;
-
+    var bus = TestBus.setup(&.{0x9A});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -268,14 +288,7 @@ pub fn tsx(cpu: anytype, _: AddressReturn) bool {
 }
 
 test "tsx implied" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0xBA;
-
+    var bus = TestBus.setup(&.{0xBA});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -288,14 +301,7 @@ test "tsx implied" {
 }
 
 test "tsx flag z" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0xBA;
-
+    var bus = TestBus.setup(&.{0xBA});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -308,14 +314,7 @@ test "tsx flag z" {
 }
 
 test "tsx flag n" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0xBA;
-
+    var bus = TestBus.setup(&.{0xBA});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -336,14 +335,7 @@ pub fn clc(cpu: anytype, _: AddressReturn) bool {
 }
 
 test "clc implied" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0x18;
-
+    var bus = TestBus.setup(&.{0x18});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -364,14 +356,7 @@ pub fn sec(cpu: anytype, _: AddressReturn) bool {
 }
 
 test "sec implied" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0x38;
-
+    var bus = TestBus.setup(&.{0x38});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -392,14 +377,7 @@ pub fn cli(cpu: anytype, _: AddressReturn) bool {
 }
 
 test "cli implied" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0x58;
-
+    var bus = TestBus.setup(&.{0x58});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -420,15 +398,9 @@ pub fn sei(cpu: anytype, _: AddressReturn) bool {
 }
 
 test "sei implied" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0x78;
-
+    var bus = TestBus.setup(&.{0x78});
     var cpu = Chip(TestBus).init(&bus);
+
     cpu.powerOn();
 
     // Prepare data
@@ -448,14 +420,7 @@ pub fn cld(cpu: anytype, _: AddressReturn) bool {
 }
 
 test "cld implied" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0xD8;
-
+    var bus = TestBus.setup(&.{0xD8});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -476,14 +441,7 @@ pub fn sed(cpu: anytype, _: AddressReturn) bool {
 }
 
 test "sed implied" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0xF8;
-
+    var bus = TestBus.setup(&.{0xF8});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -492,7 +450,7 @@ test "sed implied" {
 
     cpu.clock();
 
-    try std.testing.expectEqual(cpu.status.isSet(.d), true);
+    try std.testing.expectEqual(true, cpu.status.isSet(.d));
 }
 
 /// CLV - Clear Overflow
@@ -504,14 +462,7 @@ pub fn clv(cpu: anytype, _: AddressReturn) bool {
 }
 
 test "clv implied" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0xB8;
-
+    var bus = TestBus.setup(&.{0xB8});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 
@@ -520,7 +471,7 @@ test "clv implied" {
 
     cpu.clock();
 
-    try std.testing.expectEqual(cpu.status.isSet(.d), false);
+    try std.testing.expectEqual(false, cpu.status.isSet(.v));
 }
 
 /// NOP - No Operation
@@ -530,14 +481,7 @@ pub fn nop(_: anytype, _: AddressReturn) bool {
 }
 
 test "nop implied" {
-    var bus = TestBus{
-        .data = undefined,
-    };
-    @memset(&bus.data, 0);
-
-    // Prepare instruction
-    bus.data[0xFFFC] = 0xEA;
-
+    var bus = TestBus.setup(&.{0xEA});
     var cpu = Chip(TestBus).init(&bus);
     cpu.powerOn();
 

@@ -34,13 +34,23 @@ pub const Status = struct {
     }
 
     pub fn set(self: *Status, comptime flag: Flags, value: bool) void {
-        const flag_value = @intFromEnum(flag);
-        self.data = (self.data & ~flag_value) | (flag_value * @intFromBool(value));
+        const mask = @intFromEnum(flag);
+        if (value) {
+            self.data |= mask;
+        } else {
+            self.data &= ~mask;
+        }
     }
 };
 
 pub const Instruction = struct {
     pub const Type = enum {
+        // Jump
+        jmp,
+        // TODO: jsr
+        // TODO: rts
+        // TODO: brk
+        // TODO: rti
         // Stack
         pha,
         pla,
@@ -63,6 +73,8 @@ pub const Instruction = struct {
 
     pub const Mode = enum {
         implied,
+        absolute,
+        indirect,
         unknown,
     };
 
@@ -73,10 +85,13 @@ pub const Instruction = struct {
     pub fn run(self: Instruction, comptime CpuT: type, cpu: *CpuT) bool {
         const address_return = switch (self.mode) {
             .implied => instructions.implied(cpu),
+            .absolute => instructions.absolute(cpu),
+            .indirect => instructions.indirect(cpu),
             .unknown => instructions.address_unknown(cpu),
         };
 
         return switch (self.type) {
+            .jmp => instructions.jmp(cpu, address_return),
             .pha => instructions.pha(cpu, address_return),
             .pla => instructions.pla(cpu, address_return),
             .php => instructions.php(cpu, address_return),
@@ -122,6 +137,11 @@ pub const Instruction = struct {
                 .mode = .implied,
                 .cycles = 3,
             },
+            0x4C => .{
+                .type = .jmp,
+                .mode = .absolute,
+                .cycles = 3,
+            },
             0x58 => .{
                 .type = .cli,
                 .mode = .implied,
@@ -131,6 +151,11 @@ pub const Instruction = struct {
                 .type = .pla,
                 .mode = .implied,
                 .cycles = 4,
+            },
+            0x6C => .{
+                .type = .jmp,
+                .mode = .indirect,
+                .cycles = 5,
             },
             0x78 => .{
                 .type = .sei,
@@ -213,7 +238,11 @@ pub fn Chip(Bus: type) type {
             self.a = 0;
             self.x = 0;
             self.y = 0;
-            self.pc = 0xFFFC;
+
+            const pc_lo: u16 = self.read(0xFFFC);
+            const pc_hi: u16 = self.read(0xFFFD);
+            self.pc = (pc_hi << 8) | pc_lo;
+
             self.sp = 0xFD;
 
             self.status = .init;
@@ -221,9 +250,13 @@ pub fn Chip(Bus: type) type {
         }
 
         pub fn reset(self: *Self) void {
-            self.pc = 0xFFFC;
+            const pc_lo: u16 = self.read(0xFFFC);
+            const pc_hi: u16 = self.read(0xFFFD);
+            self.pc = (pc_hi << 8) | pc_lo;
             self.sp = 0xFD;
             self.status.set(.i, true);
+
+            self.cycles_left = 8;
         }
 
         pub fn clock(self: *Self) void {
@@ -241,7 +274,7 @@ pub fn Chip(Bus: type) type {
             self.cycles_left -= 1;
         }
 
-        pub fn write(self: Self, addr: u16, value: u8) void {
+        pub fn write(self: *Self, addr: u16, value: u8) void {
             self.bus.write(addr, value);
         }
 
@@ -277,6 +310,9 @@ test "cpu register" {
 
     try std.testing.expect(cpu.status.isSet(.d));
     try std.testing.expectEqual(cpu.status.data, 0b01001000);
+
+    cpu.status.set(.d, false);
+    try std.testing.expect(!cpu.status.isSet(.d));
 }
 
 test "instructions" {
