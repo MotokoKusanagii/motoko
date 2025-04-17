@@ -98,6 +98,67 @@ test "jmp (indirect)" {
     try std.testing.expectEqual(0x1234, cpu.pc);
 }
 
+/// JSR - Jump to Subroutine
+/// `push PC + 2 to stack`
+/// `PC = memory`
+/// 0x20 - 3 bytes - 6 cycles - absolute
+pub fn jsr(cpu: anytype, ret: AddressReturn) bool {
+    cpu.pc -= 1;
+
+    micro.writeSp(cpu, @truncate(cpu.pc >> 8));
+    cpu.sp -%= 1;
+    micro.writeSp(cpu, @truncate(cpu.pc));
+    cpu.sp -%= 1;
+
+    cpu.pc = ret.address;
+    return false;
+}
+
+test "jsr absolute" {
+    // JSR $2548
+    var bus = TestBus.setup(&.{ 0x20, 0x48, 0x25 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.sp = 0x50;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x2548, cpu.pc);
+    try std.testing.expectEqual(0x02, bus.data[micro.getSpAbs(cpu) + 1]);
+    try std.testing.expectEqual(0xF0, bus.data[micro.getSpAbs(cpu) + 2]);
+}
+
+/// RTS - Return from Subroutine
+/// `pull PC from stack`
+/// `PC = PC + 1`
+/// 0x60 - 1 byte - 6 cycles - implied
+pub fn rts(cpu: anytype, _: AddressReturn) bool {
+    cpu.sp +%= 1;
+    const lo: u16 = micro.readSp(cpu);
+    cpu.sp +%= 1;
+    const hi: u16 = micro.readSp(cpu);
+    cpu.pc = (hi << 8) | lo;
+
+    cpu.pc += 1;
+    return false;
+}
+
+test "rts implied" {
+    var bus = TestBus.setup(&.{0x60});
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.sp = 0x50;
+    // 0x45BA
+    bus.data[micro.getSpAbs(cpu) + 1] = 0xBA;
+    bus.data[micro.getSpAbs(cpu) + 2] = 0x45;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x45BB, cpu.pc);
+}
+
 /// PHA - Push A
 /// `($0100 + SP) = A`
 /// `SP = SP - 1`

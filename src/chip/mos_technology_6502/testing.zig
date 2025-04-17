@@ -17,7 +17,7 @@ pub const TestBus = struct {
         };
         @memset(&bus.data, 0xAA);
 
-        // Set pc
+        // Set pc 0xF000
         bus.data[0xFFFC] = 0x00;
         bus.data[0xFFFD] = 0xF0;
 

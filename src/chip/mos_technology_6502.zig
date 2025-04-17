@@ -47,8 +47,8 @@ pub const Instruction = struct {
     pub const Type = enum {
         // Jump
         jmp,
-        // TODO: jsr
-        // TODO: rts
+        jsr,
+        rts,
         // TODO: brk
         // TODO: rti
         // Stack
@@ -92,6 +92,8 @@ pub const Instruction = struct {
 
         return switch (self.type) {
             .jmp => instructions.jmp(cpu, address_return),
+            .jsr => instructions.jsr(cpu, address_return),
+            .rts => instructions.rts(cpu, address_return),
             .pha => instructions.pha(cpu, address_return),
             .pla => instructions.pla(cpu, address_return),
             .php => instructions.php(cpu, address_return),
@@ -122,6 +124,11 @@ pub const Instruction = struct {
                 .mode = .implied,
                 .cycles = 2,
             },
+            0x20 => .{
+                .type = .jsr,
+                .mode = .absolute,
+                .cycles = 6,
+            },
             0x28 => .{
                 .type = .plp,
                 .mode = .implied,
@@ -146,6 +153,11 @@ pub const Instruction = struct {
                 .type = .cli,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0x60 => .{
+                .type = .rts,
+                .mode = .implied,
+                .cycles = 6,
             },
             0x68 => .{
                 .type = .pla,
