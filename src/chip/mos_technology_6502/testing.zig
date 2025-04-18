@@ -183,6 +183,116 @@ test "lda flag n" {
     try std.testing.expect(cpu.status.isSet(.n));
 }
 
+test "sta zeroPage" {
+    // STA $A4
+    var bus = TestBus.setup(&.{ 0x85, 0xA4 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.a = 0xFA;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xFA, bus.data[0x00A4]);
+}
+
+test "sta zeroPage,x (wrap)" {
+    // STA $F0,x
+    var bus = TestBus.setup(&.{ 0x95, 0xF0 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.x = 0x22;
+    cpu.a = 0x10;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x10, bus.data[0x0012]);
+}
+
+test "sta absolute" {
+    // STA $4264
+    var bus = TestBus.setup(&.{ 0x8D, 0x64, 0x42 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.a = 0xBC;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xBC, bus.data[0x4264]);
+}
+
+test "sta absolute,x" {
+    // STA $55F0,x
+    var bus = TestBus.setup(&.{ 0x9D, 0xF0, 0x55 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.x = 0x20;
+    cpu.a = 0xAB;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xAB, bus.data[0x5610]);
+    try std.testing.expectEqual(4, cpu.cycles_left);
+}
+
+test "sta absolute,y" {
+    // STA $55F0,y
+    var bus = TestBus.setup(&.{ 0x99, 0xF0, 0x55 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.y = 0x20;
+    cpu.a = 0xAB;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xAB, bus.data[0x5610]);
+    try std.testing.expectEqual(4, cpu.cycles_left);
+}
+
+test "sta (indirect,x)" {
+    // STA ($F0,x)
+    var bus = TestBus.setup(&.{ 0x81, 0xF0 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.x = 0x25;
+    bus.data[0x0015] = 0xAB;
+    bus.data[0x0016] = 0x25;
+    cpu.a = 0xCD;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xCD, bus.data[0x25AB]);
+}
+
+test "sta (indirect),y" {
+    // STA ($55),y
+    var bus = TestBus.setup(&.{ 0x91, 0x55 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.y = 0x25;
+    bus.data[0x0055] = 0xF0;
+    bus.data[0x0056] = 0x50;
+    cpu.a = 0xCD;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xCD, bus.data[0x5115]);
+    try std.testing.expectEqual(5, cpu.cycles_left);
+}
+
 test "jmp absolute" {
     // JMP $5025
     var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });

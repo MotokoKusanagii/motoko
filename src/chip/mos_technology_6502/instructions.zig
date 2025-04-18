@@ -173,6 +173,20 @@ pub fn lda(cpu: anytype, ret: AddressReturn) bool {
     return ret.cycle_request;
 }
 
+/// STA - Store A
+/// `memory = A`
+/// 0x85 - 2 bytes - 3 cycles - zeroPage
+/// 0x95 - 2 bytes - 4 cycles - zeroPage,x
+/// 0x8D - 3 bytes - 4 cycles - absolute
+/// 0x9D - 3 bytes - 5 cycles - absolute,x
+/// 0x99 - 3 bytes - 5 cycles - absolute,y
+/// 0x81 - 2 bytes - 6 cycles - (indirect,x)
+/// 0x91 - 2 bytes - 6 cycles - (indirect),y
+pub fn sta(cpu: anytype, ret: AddressReturn) bool {
+    cpu.write(ret.address, cpu.a);
+    return false;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute

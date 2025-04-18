@@ -47,7 +47,7 @@ pub const Instruction = struct {
     pub const Type = enum {
         // Access
         lda,
-        // TODO: sta,
+        sta,
         // TODO: ldx,
         // TODO: stx,
         // TODO: ldy,
@@ -118,6 +118,7 @@ pub const Instruction = struct {
 
         return switch (self.type) {
             .lda => instructions.lda(cpu, address_return),
+            .sta => instructions.sta(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -213,10 +214,45 @@ pub const Instruction = struct {
                 .mode = .implied,
                 .cycles = 2,
             },
+            0x81 => .{
+                .type = .sta,
+                .mode = .indirect_x,
+                .cycles = 6,
+            },
+            0x85 => .{
+                .type = .sta,
+                .mode = .zero_page,
+                .cycles = 3,
+            },
+            0x8D => .{
+                .type = .sta,
+                .mode = .absolute,
+                .cycles = 4,
+            },
+            0x91 => .{
+                .type = .sta,
+                .mode = .indirect_y,
+                .cycles = 6,
+            },
+            0x95 => .{
+                .type = .sta,
+                .mode = .zero_page_x,
+                .cycles = 4,
+            },
+            0x99 => .{
+                .type = .sta,
+                .mode = .absolute_y,
+                .cycles = 5,
+            },
             0x9A => .{
                 .type = .txs,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0x9D => .{
+                .type = .sta,
+                .mode = .absolute_x,
+                .cycles = 5,
             },
             0xA1 => .{
                 .type = .lda,
