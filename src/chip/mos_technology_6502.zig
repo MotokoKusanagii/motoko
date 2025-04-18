@@ -51,7 +51,7 @@ pub const Instruction = struct {
         ldx,
         stx,
         ldy,
-        // TODO: sty,
+        sty,
         // Transfer
         // TODO: tax,
         // TODO: txa,
@@ -124,6 +124,7 @@ pub const Instruction = struct {
             .ldx => instructions.ldx(cpu, address_return),
             .stx => instructions.stx(cpu, address_return),
             .ldy => instructions.ldy(cpu, address_return),
+            .sty => instructions.sty(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -224,6 +225,11 @@ pub const Instruction = struct {
                 .mode = .indirect_x,
                 .cycles = 6,
             },
+            0x84 => .{
+                .type = .sty,
+                .mode = .zero_page,
+                .cycles = 3,
+            },
             0x85 => .{
                 .type = .sta,
                 .mode = .zero_page,
@@ -233,6 +239,11 @@ pub const Instruction = struct {
                 .type = .stx,
                 .mode = .zero_page,
                 .cycles = 3,
+            },
+            0x8C => .{
+                .type = .sty,
+                .mode = .absolute,
+                .cycles = 4,
             },
             0x8D => .{
                 .type = .sta,
@@ -248,6 +259,11 @@ pub const Instruction = struct {
                 .type = .sta,
                 .mode = .indirect_y,
                 .cycles = 6,
+            },
+            0x94 => .{
+                .type = .sty,
+                .mode = .zero_page_x,
+                .cycles = 4,
             },
             0x95 => .{
                 .type = .sta,

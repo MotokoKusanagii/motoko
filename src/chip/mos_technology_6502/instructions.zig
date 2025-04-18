@@ -241,6 +241,16 @@ pub fn ldy(cpu: anytype, ret: AddressReturn) bool {
     return ret.cycle_request;
 }
 
+/// STY - Store Y
+/// `memory = Y`
+/// 0x84 - 2 bytes - 3 cycles - zeroPage
+/// 0x94 - 2 bytes - 4 cycles - zeroPage,x
+/// 0x8C - 3 bytes - 4 cycles - absolute
+pub fn sty(cpu: anytype, ret: AddressReturn) bool {
+    cpu.write(ret.address, cpu.y);
+    return false;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute

@@ -517,6 +517,49 @@ test "jmp absolute" {
     try std.testing.expectEqual(0x5025, cpu.pc);
 }
 
+test "sty zeroPage" {
+    // STY $A4
+    var bus = TestBus.setup(&.{ 0x84, 0xA4 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.y = 0xFA;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xFA, bus.data[0x00A4]);
+}
+
+test "sty zeroPage,x (wrap)" {
+    // STY $F0,y
+    var bus = TestBus.setup(&.{ 0x94, 0xF0 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.x = 0x22;
+    cpu.y = 0x10;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x10, bus.data[0x0012]);
+}
+
+test "sty absolute" {
+    // STY $4264
+    var bus = TestBus.setup(&.{ 0x8C, 0x64, 0x42 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.y = 0xBC;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xBC, bus.data[0x4264]);
+}
+
 test "jmp (indirect)" {
     // JMP ($ABBA)
     var bus = TestBus.setup(&.{ 0x6C, 0xBA, 0xAB });
