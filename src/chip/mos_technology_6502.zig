@@ -50,7 +50,7 @@ pub const Instruction = struct {
         sta,
         ldx,
         stx,
-        // TODO: ldy,
+        ldy,
         // TODO: sty,
         // Transfer
         // TODO: tax,
@@ -123,6 +123,7 @@ pub const Instruction = struct {
             .sta => instructions.sta(cpu, address_return),
             .ldx => instructions.ldx(cpu, address_return),
             .stx => instructions.stx(cpu, address_return),
+            .ldy => instructions.ldy(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -273,6 +274,11 @@ pub const Instruction = struct {
                 .mode = .absolute_x,
                 .cycles = 5,
             },
+            0xA0 => .{
+                .type = .ldy,
+                .mode = .immediate,
+                .cycles = 2,
+            },
             0xA1 => .{
                 .type = .lda,
                 .mode = .indirect_x,
@@ -282,6 +288,11 @@ pub const Instruction = struct {
                 .type = .ldx,
                 .mode = .immediate,
                 .cycles = 2,
+            },
+            0xA4 => .{
+                .type = .ldy,
+                .mode = .zero_page,
+                .cycles = 3,
             },
             0xA5 => .{
                 .type = .lda,
@@ -298,6 +309,11 @@ pub const Instruction = struct {
                 .mode = .immediate,
                 .cycles = 2,
             },
+            0xAC => .{
+                .type = .ldy,
+                .mode = .absolute,
+                .cycles = 4,
+            },
             0xAD => .{
                 .type = .lda,
                 .mode = .absolute,
@@ -312,6 +328,11 @@ pub const Instruction = struct {
                 .type = .lda,
                 .mode = .indirect_y,
                 .cycles = 5,
+            },
+            0xB4 => .{
+                .type = .ldy,
+                .mode = .zero_page_x,
+                .cycles = 4,
             },
             0xB5 => .{
                 .type = .lda,
@@ -337,6 +358,11 @@ pub const Instruction = struct {
                 .type = .tsx,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0xBC => .{
+                .type = .ldy,
+                .mode = .absolute_x,
+                .cycles = 4,
             },
             0xBD => .{
                 .type = .lda,

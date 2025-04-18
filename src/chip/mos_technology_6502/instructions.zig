@@ -224,6 +224,23 @@ pub fn stx(cpu: anytype, ret: AddressReturn) bool {
     return false;
 }
 
+/// LDY - Load Y
+/// `Y = memory`
+/// Flags:
+///     z = result == 0
+///     n = result & 0x80 != 0
+/// 0xA0 - 2 bytes - 2 cycles - #immediate
+/// 0xA4 - 2 bytes - 3 cycles - zeroPage
+/// 0xB4 - 2 bytes - 4 cycles - zeroPage,x
+/// 0xAC - 3 bytes - 4 cycles - absolute
+/// 0xBC - 3 bytes - 4 cycles - absolute,x
+pub fn ldy(cpu: anytype, ret: AddressReturn) bool {
+    cpu.y = cpu.read(ret.address);
+    cpu.status.set(.z, cpu.x == 0x00);
+    cpu.status.set(.n, cpu.x & 0x80 != 0);
+    return ret.cycle_request;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute

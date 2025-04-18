@@ -436,6 +436,76 @@ test "stx absolute" {
     try std.testing.expectEqual(0xBC, bus.data[0x4264]);
 }
 
+test "ldy #immediate" {
+    // LDY #$42
+    var bus = TestBus.setup(&.{ 0xA0, 0x42 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x42, cpu.y);
+}
+
+test "ldy zeroPage" {
+    // LDY $A4
+    var bus = TestBus.setup(&.{ 0xA4, 0xA4 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    bus.data[0x00A4] = 0xFA;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xFA, cpu.y);
+}
+
+test "ldy zeroPage,x (wrap)" {
+    // LDY $F0,x
+    var bus = TestBus.setup(&.{ 0xB4, 0xF0 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    bus.data[0x0012] = 0x10;
+    cpu.x = 0x22;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x10, cpu.y);
+}
+
+test "ldy absolute" {
+    // LDY $4264
+    var bus = TestBus.setup(&.{ 0xAC, 0x64, 0x42 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    bus.data[0x4264] = 0xBC;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xBC, cpu.y);
+}
+
+test "ldy absolute,x" {
+    // LDY $55F0,x
+    var bus = TestBus.setup(&.{ 0xBC, 0xF0, 0x55 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.x = 0x20;
+    bus.data[0x5610] = 0xAB;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xAB, cpu.y);
+    try std.testing.expectEqual(4, cpu.cycles_left);
+}
+
 test "jmp absolute" {
     // JMP $5025
     var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });
