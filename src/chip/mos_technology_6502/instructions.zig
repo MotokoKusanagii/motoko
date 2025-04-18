@@ -20,7 +20,7 @@ pub const micro = struct {
     }
     pub fn fetch16(cpu: anytype, address: u16) u16 {
         const lo: u16 = cpu.read(address);
-        const hi: u16 = cpu.read(address + 1);
+        const hi: u16 = cpu.read(address +% 1);
         return (hi << 8) | lo;
     }
 };
@@ -32,6 +32,34 @@ pub fn implied(_: anytype) AddressReturn {
     };
 }
 
+pub fn immediate(cpu: anytype) AddressReturn {
+    const address = cpu.pc;
+    cpu.pc += 1;
+    return .{
+        .cycle_request = false,
+        .address = address,
+    };
+}
+
+pub fn zeroPage(cpu: anytype) AddressReturn {
+    const address: u16 = cpu.read(cpu.pc);
+    cpu.pc += 1;
+    return .{
+        .cycle_request = false,
+        .address = address,
+    };
+}
+
+pub fn zeroPageX(cpu: anytype) AddressReturn {
+    var address: u8 = cpu.read(cpu.pc);
+    address +%= cpu.x;
+    cpu.pc += 1;
+    return .{
+        .cycle_request = false,
+        .address = address,
+    };
+}
+
 pub fn absolute(cpu: anytype) AddressReturn {
     const lo: u16 = cpu.read(cpu.pc);
     cpu.pc += 1;
@@ -40,6 +68,36 @@ pub fn absolute(cpu: anytype) AddressReturn {
     return .{
         .cycle_request = false,
         .address = (hi << 8) | lo,
+    };
+}
+
+pub fn absoluteX(cpu: anytype) AddressReturn {
+    const lo: u16 = cpu.read(cpu.pc);
+    cpu.pc += 1;
+    const hi: u16 = cpu.read(cpu.pc);
+    cpu.pc += 1;
+
+    var address = (hi << 8) | lo;
+    address +%= cpu.x;
+    const page_boundary_crossed = address >> 8 != hi;
+    return .{
+        .cycle_request = page_boundary_crossed,
+        .address = address,
+    };
+}
+
+pub fn absoluteY(cpu: anytype) AddressReturn {
+    const lo: u16 = cpu.read(cpu.pc);
+    cpu.pc += 1;
+    const hi: u16 = cpu.read(cpu.pc);
+    cpu.pc += 1;
+
+    var address = (hi << 8) | lo;
+    address +%= cpu.y;
+    const page_boundary_crossed = address >> 8 != hi;
+    return .{
+        .cycle_request = page_boundary_crossed,
+        .address = address,
     };
 }
 
@@ -60,8 +118,211 @@ pub fn indirect(cpu: anytype) AddressReturn {
     };
 }
 
+pub fn indirectX(cpu: anytype) AddressReturn {
+    var ptr: u8 = cpu.read(cpu.pc);
+    cpu.pc += 1;
+
+    ptr +%= cpu.x;
+
+    const address = micro.fetch16(cpu, ptr);
+
+    return .{
+        .cycle_request = false,
+        .address = address,
+    };
+}
+
+pub fn indirectY(cpu: anytype) AddressReturn {
+    const ptr: u8 = cpu.read(cpu.pc);
+    cpu.pc += 1;
+
+    const lo: u16 = cpu.read(ptr);
+    const hi: u16 = cpu.read(ptr +% 1);
+    var address = (hi << 8) | lo;
+    address +%= cpu.y;
+
+    const page_boundary_crossed = (address >> 8) != hi;
+
+    return .{
+        .cycle_request = page_boundary_crossed,
+        .address = address,
+    };
+}
+
 pub fn address_unknown(_: anytype) AddressReturn {
     @panic("unknown address mode!");
+}
+
+/// LDA - Load A
+/// `A = memory`
+/// Flags:
+///     z = result == 0
+///     n = result & 0x80 != 0
+/// 0xA9 - 2 bytes - 2 cycles - #immediate
+/// 0xA5 - 2 bytes - 3 cycles - zeroPage
+/// 0xB5 - 2 bytes - 4 cycles - zeroPage,x
+/// 0xAD - 3 bytes - 4 cycles - absolute
+/// 0xBD - 3 bytes - 4 cycles* - absolute,x
+/// 0xB9 - 3 bytes - 4 cycles* - absolute,y
+/// 0xA1 - 2 bytes - 6 cycles - (indirect,x)
+/// 0xB1 - 2 bytes - 5 cycles* - (indirect),y
+pub fn lda(cpu: anytype, ret: AddressReturn) bool {
+    cpu.a = cpu.read(ret.address);
+    cpu.status.set(.z, cpu.a == 0x00);
+    cpu.status.set(.n, cpu.a & 0x80 != 0);
+    return ret.cycle_request;
+}
+
+test "lda #immediate" {
+    // LDA #$42
+    var bus = TestBus.setup(&.{ 0xA9, 0x42 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x42, cpu.a);
+}
+
+test "lda zeroPage" {
+    // LDA $A4
+    var bus = TestBus.setup(&.{ 0xA5, 0xA4 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    bus.data[0x00A4] = 0xFA;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xFA, cpu.a);
+}
+
+test "lda zeroPage,x (wrap)" {
+    // LDA $F0,x
+    var bus = TestBus.setup(&.{ 0xB5, 0xF0 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    bus.data[0x0012] = 0x10;
+    cpu.x = 0x22;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x10, cpu.a);
+}
+
+test "lda absolute" {
+    // LDA $4264
+    var bus = TestBus.setup(&.{ 0xAD, 0x64, 0x42 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    bus.data[0x4264] = 0xBC;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xBC, cpu.a);
+    try std.testing.expectEqual(3, cpu.cycles_left);
+}
+
+test "lda absolute,x" {
+    // LDA $55F0,x
+    var bus = TestBus.setup(&.{ 0xBD, 0xF0, 0x55 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.x = 0x20;
+    bus.data[0x5610] = 0xAB;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xAB, cpu.a);
+    try std.testing.expectEqual(4, cpu.cycles_left);
+}
+
+test "lda absolute,y" {
+    // LDA $55F0,y
+    var bus = TestBus.setup(&.{ 0xB9, 0xF0, 0x55 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.y = 0x20;
+    bus.data[0x5610] = 0xAB;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xAB, cpu.a);
+    try std.testing.expectEqual(4, cpu.cycles_left);
+}
+
+test "lda (indirect,x)" {
+    // LDA ($F0,x)
+    var bus = TestBus.setup(&.{ 0xA1, 0xF0 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.x = 0x25;
+    bus.data[0x0015] = 0xAB;
+    bus.data[0x0016] = 0x25;
+    bus.data[0x25AB] = 0xCD;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xCD, cpu.a);
+}
+
+test "lda (indirect),y" {
+    // LDA ($55),y
+    var bus = TestBus.setup(&.{ 0xB1, 0x55 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.y = 0x25;
+    bus.data[0x0055] = 0xF0;
+    bus.data[0x0056] = 0x50;
+    bus.data[0x5115] = 0xCD;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xCD, cpu.a);
+    try std.testing.expectEqual(5, cpu.cycles_left);
+}
+
+test "lda flag z" {
+    // LDA $4264
+    var bus = TestBus.setup(&.{ 0xAD, 0x64, 0x42 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    bus.data[0x4264] = 0x00;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x00, cpu.a);
+    try std.testing.expect(cpu.status.isSet(.z));
+}
+
+test "lda flag n" {
+    // LDA $4264
+    var bus = TestBus.setup(&.{ 0xAD, 0x64, 0x42 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    bus.data[0x4264] = 0x81;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x81, cpu.a);
+    try std.testing.expect(cpu.status.isSet(.n));
 }
 
 /// JMP - Jump

@@ -45,6 +45,18 @@ pub const Status = struct {
 
 pub const Instruction = struct {
     pub const Type = enum {
+        // Access
+        lda,
+        // TODO: sta,
+        // TODO: ldx,
+        // TODO: stx,
+        // TODO: ldy,
+        // TODO: sty,
+        // Transfer
+        // TODO: tax,
+        // TODO: txa,
+        // TODO: tay,
+        // TODO: tya,
         // Jump
         jmp,
         jsr,
@@ -73,8 +85,15 @@ pub const Instruction = struct {
 
     pub const Mode = enum {
         implied,
+        immediate,
+        zero_page,
+        zero_page_x,
         absolute,
+        absolute_x,
+        absolute_y,
         indirect,
+        indirect_x,
+        indirect_y,
         unknown,
     };
 
@@ -85,12 +104,20 @@ pub const Instruction = struct {
     pub fn run(self: Instruction, comptime CpuT: type, cpu: *CpuT) bool {
         const address_return = switch (self.mode) {
             .implied => instructions.implied(cpu),
+            .immediate => instructions.immediate(cpu),
+            .zero_page => instructions.zeroPage(cpu),
+            .zero_page_x => instructions.zeroPageX(cpu),
             .absolute => instructions.absolute(cpu),
+            .absolute_x => instructions.absoluteX(cpu),
+            .absolute_y => instructions.absoluteY(cpu),
             .indirect => instructions.indirect(cpu),
+            .indirect_x => instructions.indirectX(cpu),
+            .indirect_y => instructions.indirectY(cpu),
             .unknown => instructions.address_unknown(cpu),
         };
 
         return switch (self.type) {
+            .lda => instructions.lda(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -191,15 +218,55 @@ pub const Instruction = struct {
                 .mode = .implied,
                 .cycles = 2,
             },
+            0xA1 => .{
+                .type = .lda,
+                .mode = .indirect_x,
+                .cycles = 6,
+            },
+            0xA5 => .{
+                .type = .lda,
+                .mode = .zero_page,
+                .cycles = 3,
+            },
+            0xA9 => .{
+                .type = .lda,
+                .mode = .immediate,
+                .cycles = 2,
+            },
+            0xAD => .{
+                .type = .lda,
+                .mode = .absolute,
+                .cycles = 4,
+            },
+            0xB1 => .{
+                .type = .lda,
+                .mode = .indirect_y,
+                .cycles = 5,
+            },
+            0xB5 => .{
+                .type = .lda,
+                .mode = .zero_page_x,
+                .cycles = 4,
+            },
             0xB8 => .{
                 .type = .clv,
                 .mode = .implied,
                 .cycles = 2,
             },
+            0xB9 => .{
+                .type = .lda,
+                .mode = .absolute_y,
+                .cycles = 4,
+            },
             0xBA => .{
                 .type = .tsx,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0xBD => .{
+                .type = .lda,
+                .mode = .absolute_x,
+                .cycles = 4,
             },
             0xD8 => .{
                 .type = .cld,
