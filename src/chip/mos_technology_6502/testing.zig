@@ -347,17 +347,6 @@ test "ldx absolute" {
     try std.testing.expectEqual(0xBC, cpu.x);
 }
 
-test "jmp absolute" {
-    // JMP $5025
-    var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0x5025, cpu.pc);
-}
-
 test "ldx absolute,y" {
     // LDX $55F0,y
     var bus = TestBus.setup(&.{ 0xBE, 0xF0, 0x55 });
@@ -372,6 +361,90 @@ test "ldx absolute,y" {
 
     try std.testing.expectEqual(0xAB, cpu.x);
     try std.testing.expectEqual(4, cpu.cycles_left);
+}
+
+test "ldx flag z" {
+    // LDX $4264
+    var bus = TestBus.setup(&.{ 0xAE, 0x64, 0x42 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    bus.data[0x4264] = 0x00;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x00, cpu.x);
+    try std.testing.expect(cpu.status.isSet(.z));
+}
+
+test "ldx flag n" {
+    // LDA $4264
+    var bus = TestBus.setup(&.{ 0xAE, 0x64, 0x42 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    bus.data[0x4264] = 0x81;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x81, cpu.x);
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
+test "stx zeroPage" {
+    // STX $A4
+    var bus = TestBus.setup(&.{ 0x86, 0xA4 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.x = 0xFA;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xFA, bus.data[0x00A4]);
+}
+
+test "stx zeroPage,y (wrap)" {
+    // STX $F0,y
+    var bus = TestBus.setup(&.{ 0x96, 0xF0 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.y = 0x22;
+    cpu.x = 0x10;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x10, bus.data[0x0012]);
+}
+
+test "stx absolute" {
+    // STX $4264
+    var bus = TestBus.setup(&.{ 0x8E, 0x64, 0x42 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.x = 0xBC;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xBC, bus.data[0x4264]);
+}
+
+test "jmp absolute" {
+    // JMP $5025
+    var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x5025, cpu.pc);
 }
 
 test "jmp (indirect)" {

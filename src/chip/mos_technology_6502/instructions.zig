@@ -214,6 +214,16 @@ pub fn ldx(cpu: anytype, ret: AddressReturn) bool {
     return ret.cycle_request;
 }
 
+/// STX - Store X
+/// `memory = X`
+/// 0x86 - 2 bytes - 3 cycles - zeroPage
+/// 0x96 - 2 bytes - 4 cycles - zeroPage,y
+/// 0x8E - 3 bytes - 4 cycles - absolute
+pub fn stx(cpu: anytype, ret: AddressReturn) bool {
+    cpu.write(ret.address, cpu.x);
+    return false;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute

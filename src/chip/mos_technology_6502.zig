@@ -49,7 +49,7 @@ pub const Instruction = struct {
         lda,
         sta,
         ldx,
-        // TODO: stx,
+        stx,
         // TODO: ldy,
         // TODO: sty,
         // Transfer
@@ -122,6 +122,7 @@ pub const Instruction = struct {
             .lda => instructions.lda(cpu, address_return),
             .sta => instructions.sta(cpu, address_return),
             .ldx => instructions.ldx(cpu, address_return),
+            .stx => instructions.stx(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -227,8 +228,18 @@ pub const Instruction = struct {
                 .mode = .zero_page,
                 .cycles = 3,
             },
+            0x86 => .{
+                .type = .stx,
+                .mode = .zero_page,
+                .cycles = 3,
+            },
             0x8D => .{
                 .type = .sta,
+                .mode = .absolute,
+                .cycles = 4,
+            },
+            0x8E => .{
+                .type = .stx,
                 .mode = .absolute,
                 .cycles = 4,
             },
@@ -240,6 +251,11 @@ pub const Instruction = struct {
             0x95 => .{
                 .type = .sta,
                 .mode = .zero_page_x,
+                .cycles = 4,
+            },
+            0x96 => .{
+                .type = .stx,
+                .mode = .zero_page_y,
                 .cycles = 4,
             },
             0x99 => .{
