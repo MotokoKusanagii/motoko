@@ -407,6 +407,5 @@ test "cpu register" {
 }
 
 test "instructions" {
-    std.testing.refAllDecls(instructions);
     std.testing.refAllDecls(@import("mos_technology_6502/testing.zig"));
 }

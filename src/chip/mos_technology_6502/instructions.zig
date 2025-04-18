@@ -173,158 +173,6 @@ pub fn lda(cpu: anytype, ret: AddressReturn) bool {
     return ret.cycle_request;
 }
 
-test "lda #immediate" {
-    // LDA #$42
-    var bus = TestBus.setup(&.{ 0xA9, 0x42 });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0x42, cpu.a);
-}
-
-test "lda zeroPage" {
-    // LDA $A4
-    var bus = TestBus.setup(&.{ 0xA5, 0xA4 });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    bus.data[0x00A4] = 0xFA;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0xFA, cpu.a);
-}
-
-test "lda zeroPage,x (wrap)" {
-    // LDA $F0,x
-    var bus = TestBus.setup(&.{ 0xB5, 0xF0 });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    bus.data[0x0012] = 0x10;
-    cpu.x = 0x22;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0x10, cpu.a);
-}
-
-test "lda absolute" {
-    // LDA $4264
-    var bus = TestBus.setup(&.{ 0xAD, 0x64, 0x42 });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    bus.data[0x4264] = 0xBC;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0xBC, cpu.a);
-    try std.testing.expectEqual(3, cpu.cycles_left);
-}
-
-test "lda absolute,x" {
-    // LDA $55F0,x
-    var bus = TestBus.setup(&.{ 0xBD, 0xF0, 0x55 });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.x = 0x20;
-    bus.data[0x5610] = 0xAB;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0xAB, cpu.a);
-    try std.testing.expectEqual(4, cpu.cycles_left);
-}
-
-test "lda absolute,y" {
-    // LDA $55F0,y
-    var bus = TestBus.setup(&.{ 0xB9, 0xF0, 0x55 });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.y = 0x20;
-    bus.data[0x5610] = 0xAB;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0xAB, cpu.a);
-    try std.testing.expectEqual(4, cpu.cycles_left);
-}
-
-test "lda (indirect,x)" {
-    // LDA ($F0,x)
-    var bus = TestBus.setup(&.{ 0xA1, 0xF0 });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.x = 0x25;
-    bus.data[0x0015] = 0xAB;
-    bus.data[0x0016] = 0x25;
-    bus.data[0x25AB] = 0xCD;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0xCD, cpu.a);
-}
-
-test "lda (indirect),y" {
-    // LDA ($55),y
-    var bus = TestBus.setup(&.{ 0xB1, 0x55 });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.y = 0x25;
-    bus.data[0x0055] = 0xF0;
-    bus.data[0x0056] = 0x50;
-    bus.data[0x5115] = 0xCD;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0xCD, cpu.a);
-    try std.testing.expectEqual(5, cpu.cycles_left);
-}
-
-test "lda flag z" {
-    // LDA $4264
-    var bus = TestBus.setup(&.{ 0xAD, 0x64, 0x42 });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    bus.data[0x4264] = 0x00;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0x00, cpu.a);
-    try std.testing.expect(cpu.status.isSet(.z));
-}
-
-test "lda flag n" {
-    // LDA $4264
-    var bus = TestBus.setup(&.{ 0xAD, 0x64, 0x42 });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    bus.data[0x4264] = 0x81;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0x81, cpu.a);
-    try std.testing.expect(cpu.status.isSet(.n));
-}
-
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute
@@ -332,31 +180,6 @@ test "lda flag n" {
 pub fn jmp(cpu: anytype, ret: AddressReturn) bool {
     cpu.pc = ret.address;
     return false;
-}
-
-test "jmp absolute" {
-    // JMP $5025
-    var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0x5025, cpu.pc);
-}
-
-test "jmp (indirect)" {
-    // JMP ($ABBA)
-    var bus = TestBus.setup(&.{ 0x6C, 0xBA, 0xAB });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    bus.data[0xABBA] = 0x34;
-    bus.data[0xABBB] = 0x12;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0x1234, cpu.pc);
 }
 
 /// JSR - Jump to Subroutine
@@ -375,21 +198,6 @@ pub fn jsr(cpu: anytype, ret: AddressReturn) bool {
     return false;
 }
 
-test "jsr absolute" {
-    // JSR $2548
-    var bus = TestBus.setup(&.{ 0x20, 0x48, 0x25 });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    cpu.sp = 0x50;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0x2548, cpu.pc);
-    try std.testing.expectEqual(0x02, bus.data[micro.getSpAbs(cpu) + 1]);
-    try std.testing.expectEqual(0xF0, bus.data[micro.getSpAbs(cpu) + 2]);
-}
-
 /// RTS - Return from Subroutine
 /// `pull PC from stack`
 /// `PC = PC + 1`
@@ -403,21 +211,6 @@ pub fn rts(cpu: anytype, _: AddressReturn) bool {
 
     cpu.pc += 1;
     return false;
-}
-
-test "rts implied" {
-    var bus = TestBus.setup(&.{0x60});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    cpu.sp = 0x50;
-    // 0x45BA
-    bus.data[micro.getSpAbs(cpu) + 1] = 0xBA;
-    bus.data[micro.getSpAbs(cpu) + 2] = 0x45;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0x45BB, cpu.pc);
 }
 
 /// BRK - Break (software IRQ)
@@ -449,29 +242,6 @@ pub fn brk(cpu: anytype, _: AddressReturn) bool {
     return false;
 }
 
-test "brk implied" {
-    var bus = TestBus.setup(&.{0x00});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    // 0xCCBB
-    bus.data[0xFFFE] = 0xBB;
-    bus.data[0xFFFF] = 0xCC;
-
-    cpu.sp = 0x10;
-    cpu.status.set(.n, true);
-    cpu.status.set(.v, true);
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0xCCBB, cpu.pc);
-    try std.testing.expectEqual(0xD4, bus.data[micro.getSpAbs(cpu) + 1]);
-    try std.testing.expectEqual(0x02, bus.data[micro.getSpAbs(cpu) + 2]);
-    try std.testing.expectEqual(0xF0, bus.data[micro.getSpAbs(cpu) + 3]);
-    try std.testing.expectEqual(0xCCBB, cpu.pc);
-}
-
 /// RTI - Return from interrupt
 /// `pull NVxxDIZC flags from stack`
 /// `pull PC from stack`
@@ -498,23 +268,6 @@ pub fn rti(cpu: anytype, _: AddressReturn) bool {
     return false;
 }
 
-test "rti implied" {
-    var bus = TestBus.setup(&.{0x40});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.sp = 0x10;
-    bus.data[micro.getSpAbs(cpu) + 1] = 0xD4; // Stack 0b11010100
-    bus.data[micro.getSpAbs(cpu) + 2] = 0xBB;
-    bus.data[micro.getSpAbs(cpu) + 3] = 0xCC; // 0xCCBB
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0b11000100, cpu.status.data);
-    try std.testing.expectEqual(0xCCBB, cpu.pc);
-}
-
 /// PHA - Push A
 /// `($0100 + SP) = A`
 /// `SP = SP - 1`
@@ -523,20 +276,6 @@ pub fn pha(cpu: anytype, _: AddressReturn) bool {
     micro.writeSp(cpu, cpu.a);
     cpu.sp -%= 1;
     return false;
-}
-
-test "pha implied" {
-    var bus = TestBus.setup(&.{0x48});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.sp = 0xAB;
-    cpu.a = 0xFA;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0xFA, bus.data[micro.getSpAbs(cpu) + 1]);
 }
 
 /// PLA - Pull A
@@ -554,48 +293,6 @@ pub fn pla(cpu: anytype, _: AddressReturn) bool {
     return false;
 }
 
-test "pla implied" {
-    var bus = TestBus.setup(&.{0x68});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.sp = 0x58;
-    bus.data[0x59 + 0x0100] = 0xAA;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0xAA, cpu.a);
-}
-
-test "pla flag z" {
-    var bus = TestBus.setup(&.{0x68});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.sp = 0xA1;
-    bus.data[0xA2 + 0x0100] = 0x00;
-
-    cpu.clock();
-
-    try std.testing.expect(cpu.status.isSet(.z));
-}
-
-test "pla flag n" {
-    var bus = TestBus.setup(&.{0x68});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.sp = 0x82;
-    bus.data[0x83 + 0x0100] = 0xAA;
-
-    cpu.clock();
-
-    try std.testing.expect(cpu.status.isSet(.n));
-}
-
 /// PHP - Push Processor Status
 /// `($0100 + SP) = NV11DIZC`
 /// `SP = SP - 1`
@@ -607,20 +304,6 @@ pub fn php(cpu: anytype, _: AddressReturn) bool {
     micro.writeSp(cpu, local.data);
     cpu.sp -%= 1;
     return false;
-}
-
-test "php implied" {
-    var bus = TestBus.setup(&.{0x08});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.sp = 0x14;
-    cpu.status.data = 0b11001101;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0b11111101, bus.data[micro.getSpAbs(cpu) + 1]);
 }
 
 /// PLP - Pull Processor Status
@@ -646,49 +329,12 @@ pub fn plp(cpu: anytype, _: AddressReturn) bool {
     return false;
 }
 
-test "plp implied" {
-    var bus = TestBus.setup(&.{0x28});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.sp = 0x24;
-    bus.data[0x25 + 0x0100] = 0b11111111;
-    cpu.status.set(.b, false);
-    cpu.status.set(.u, false);
-
-    cpu.clock();
-
-    try std.testing.expect(cpu.status.isSet(.c));
-    try std.testing.expect(cpu.status.isSet(.z));
-    try std.testing.expect(cpu.status.isSet(.i));
-    try std.testing.expect(cpu.status.isSet(.d));
-    try std.testing.expect(cpu.status.isSet(.v));
-    try std.testing.expect(cpu.status.isSet(.n));
-
-    try std.testing.expect(!cpu.status.isSet(.b));
-    try std.testing.expect(!cpu.status.isSet(.u));
-}
-
 /// TXS - Transfer X to Stack Pointer
 /// `SP = x`
 /// 0x9A - 1 byte - 2 cycles - implied
 pub fn txs(cpu: anytype, _: AddressReturn) bool {
     cpu.sp = cpu.x;
     return false;
-}
-
-test "txs implied" {
-    var bus = TestBus.setup(&.{0x9A});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.x = 0xBB;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(cpu.sp, 0xBB);
 }
 
 /// TSX - Transfer Stack Pointer to X
@@ -704,64 +350,12 @@ pub fn tsx(cpu: anytype, _: AddressReturn) bool {
     return false;
 }
 
-test "tsx implied" {
-    var bus = TestBus.setup(&.{0xBA});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.sp = 0xAA;
-
-    cpu.clock();
-
-    try std.testing.expectEqual(cpu.x, 0xAA);
-}
-
-test "tsx flag z" {
-    var bus = TestBus.setup(&.{0xBA});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.sp = 0x00;
-
-    cpu.clock();
-
-    try std.testing.expect(cpu.status.isSet(.z));
-}
-
-test "tsx flag n" {
-    var bus = TestBus.setup(&.{0xBA});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.sp = 0b10010100;
-
-    cpu.clock();
-
-    try std.testing.expect(cpu.status.isSet(.n));
-}
-
 /// CLC - Clear Carry
 /// `C = 0`
 /// 0x18 - 1 byte - 2 cycles - implied
 pub fn clc(cpu: anytype, _: AddressReturn) bool {
     cpu.status.set(.c, false);
     return false;
-}
-
-test "clc implied" {
-    var bus = TestBus.setup(&.{0x18});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.status.set(.c, true);
-
-    cpu.clock();
-
-    try std.testing.expectEqual(cpu.status.isSet(.c), false);
 }
 
 /// SEC - Set Carry
@@ -772,38 +366,12 @@ pub fn sec(cpu: anytype, _: AddressReturn) bool {
     return false;
 }
 
-test "sec implied" {
-    var bus = TestBus.setup(&.{0x38});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.status.set(.c, false);
-
-    cpu.clock();
-
-    try std.testing.expectEqual(cpu.status.isSet(.c), true);
-}
-
 /// CLI - Clear Interrupt Disable
 /// `I = 0`
 /// 0x58 - 1 byte - 2 cycles - implied
 pub fn cli(cpu: anytype, _: AddressReturn) bool {
     cpu.status.set(.i, false);
     return false;
-}
-
-test "cli implied" {
-    var bus = TestBus.setup(&.{0x58});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.status.set(.i, true);
-
-    cpu.clock();
-
-    try std.testing.expectEqual(cpu.status.isSet(.i), false);
 }
 
 /// SEI - Set interrupt Disable
@@ -814,39 +382,12 @@ pub fn sei(cpu: anytype, _: AddressReturn) bool {
     return false;
 }
 
-test "sei implied" {
-    var bus = TestBus.setup(&.{0x78});
-    var cpu = Chip(TestBus).init(&bus);
-
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.status.set(.i, false);
-
-    cpu.clock();
-
-    try std.testing.expectEqual(cpu.status.isSet(.i), true);
-}
-
 /// CLD - CLear Decimal
 /// `D = 0`
 /// 0xD8 - 1 byte - 2 cycles - implied
 pub fn cld(cpu: anytype, _: AddressReturn) bool {
     cpu.status.set(.d, false);
     return false;
-}
-
-test "cld implied" {
-    var bus = TestBus.setup(&.{0xD8});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.status.set(.d, true);
-
-    cpu.clock();
-
-    try std.testing.expectEqual(cpu.status.isSet(.d), false);
 }
 
 /// SED - Set Decimal
@@ -857,19 +398,6 @@ pub fn sed(cpu: anytype, _: AddressReturn) bool {
     return false;
 }
 
-test "sed implied" {
-    var bus = TestBus.setup(&.{0xF8});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.status.set(.d, false);
-
-    cpu.clock();
-
-    try std.testing.expectEqual(true, cpu.status.isSet(.d));
-}
-
 /// CLV - Clear Overflow
 /// `V = 0`
 /// 0xB8 - 1 byte - 2 cycles - implied
@@ -878,31 +406,10 @@ pub fn clv(cpu: anytype, _: AddressReturn) bool {
     return false;
 }
 
-test "clv implied" {
-    var bus = TestBus.setup(&.{0xB8});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    // Prepare data
-    cpu.status.set(.v, true);
-
-    cpu.clock();
-
-    try std.testing.expectEqual(false, cpu.status.isSet(.v));
-}
-
 /// NOP - No Operation
 /// 0xEA - 1 byte - 2 cycles - implied
 pub fn nop(_: anytype, _: AddressReturn) bool {
     return false;
-}
-
-test "nop implied" {
-    var bus = TestBus.setup(&.{0xEA});
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    cpu.clock();
 }
 
 pub fn type_unknown(_: anytype, _: AddressReturn) bool {
