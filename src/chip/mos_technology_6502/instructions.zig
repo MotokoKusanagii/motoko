@@ -208,6 +208,50 @@ test "brk implied" {
     try std.testing.expectEqual(0xD4, bus.data[micro.getSpAbs(cpu) + 1]);
     try std.testing.expectEqual(0x02, bus.data[micro.getSpAbs(cpu) + 2]);
     try std.testing.expectEqual(0xF0, bus.data[micro.getSpAbs(cpu) + 3]);
+    try std.testing.expectEqual(0xCCBB, cpu.pc);
+}
+
+/// RTI - Return from interrupt
+/// `pull NVxxDIZC flags from stack`
+/// `pull PC from stack`
+/// 0x40 - 1 byte - 6 cycles - implied
+/// Flags:
+///     c = result & 0x01
+///     z = result & 0x02
+///     i = result & 0x04
+///     d = result & 0x08
+///     v = result & 0x40
+///     n = result & 0x80
+pub fn rti(cpu: anytype, _: AddressReturn) bool {
+    cpu.sp += 1;
+    cpu.status.data = micro.readSp(cpu);
+    cpu.status.set(.b, false);
+    cpu.status.set(.u, false);
+
+    cpu.sp += 1;
+    const lo: u16 = micro.readSp(cpu);
+    cpu.sp += 1;
+    const hi: u16 = micro.readSp(cpu);
+
+    cpu.pc = (hi << 8) | lo;
+    return false;
+}
+
+test "rti implied" {
+    var bus = TestBus.setup(&.{0x40});
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.sp = 0x10;
+    bus.data[micro.getSpAbs(cpu) + 1] = 0xD4; // Stack 0b11010100
+    bus.data[micro.getSpAbs(cpu) + 2] = 0xBB;
+    bus.data[micro.getSpAbs(cpu) + 3] = 0xCC; // 0xCCBB
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0b11000100, cpu.status.data);
+    try std.testing.expectEqual(0xCCBB, cpu.pc);
 }
 
 /// PHA - Push A

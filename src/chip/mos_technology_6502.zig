@@ -50,7 +50,7 @@ pub const Instruction = struct {
         jsr,
         rts,
         brk,
-        // TODO: rti
+        rti,
         // Stack
         pha,
         pla,
@@ -95,6 +95,7 @@ pub const Instruction = struct {
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
             .brk => instructions.brk(cpu, address_return),
+            .rti => instructions.rti(cpu, address_return),
             .pha => instructions.pha(cpu, address_return),
             .pla => instructions.pla(cpu, address_return),
             .php => instructions.php(cpu, address_return),
@@ -144,6 +145,11 @@ pub const Instruction = struct {
                 .type = .sec,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0x40 => .{
+                .type = .rti,
+                .mode = .implied,
+                .cycles = 6,
             },
             0x48 => .{
                 .type = .pha,
