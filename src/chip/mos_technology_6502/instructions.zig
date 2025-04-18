@@ -159,6 +159,57 @@ test "rts implied" {
     try std.testing.expectEqual(0x45BB, cpu.pc);
 }
 
+/// BRK - Break (software IRQ)
+/// `push PC + 2 to stack`
+/// `push NV11DIZC flags to stack`
+/// `PC = ($FFFE)`
+/// 0x00 - 1 byte - 7 cycles - implied
+/// Flags:
+///     i = 1
+///     b = pushed as 1
+pub fn brk(cpu: anytype, _: AddressReturn) bool {
+    cpu.pc += 1;
+
+    cpu.status.set(.i, true);
+    micro.writeSp(cpu, @truncate(cpu.pc >> 8));
+    cpu.sp -= 1;
+    micro.writeSp(cpu, @truncate(cpu.pc));
+    cpu.sp -= 1;
+
+    cpu.status.set(.b, true);
+    micro.writeSp(cpu, cpu.status.data);
+    cpu.sp -= 1;
+    cpu.status.set(.b, false);
+
+    const lo: u16 = cpu.read(0xFFFE);
+    const hi: u16 = cpu.read(0xFFFF);
+    cpu.pc = (hi << 8) | lo;
+
+    return false;
+}
+
+test "brk implied" {
+    var bus = TestBus.setup(&.{0x00});
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    // 0xCCBB
+    bus.data[0xFFFE] = 0xBB;
+    bus.data[0xFFFF] = 0xCC;
+
+    cpu.sp = 0x10;
+    cpu.status.set(.n, true);
+    cpu.status.set(.v, true);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xCCBB, cpu.pc);
+    try std.testing.expectEqual(0xD4, bus.data[micro.getSpAbs(cpu) + 1]);
+    try std.testing.expectEqual(0x02, bus.data[micro.getSpAbs(cpu) + 2]);
+    try std.testing.expectEqual(0xF0, bus.data[micro.getSpAbs(cpu) + 3]);
+}
+
 /// PHA - Push A
 /// `($0100 + SP) = A`
 /// `SP = SP - 1`

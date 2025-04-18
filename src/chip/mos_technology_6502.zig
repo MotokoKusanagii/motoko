@@ -49,7 +49,7 @@ pub const Instruction = struct {
         jmp,
         jsr,
         rts,
-        // TODO: brk
+        brk,
         // TODO: rti
         // Stack
         pha,
@@ -94,6 +94,7 @@ pub const Instruction = struct {
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
+            .brk => instructions.brk(cpu, address_return),
             .pha => instructions.pha(cpu, address_return),
             .pla => instructions.pla(cpu, address_return),
             .php => instructions.php(cpu, address_return),
@@ -114,6 +115,11 @@ pub const Instruction = struct {
 
     pub fn decode(opcode: u8) Instruction {
         return switch (opcode) {
+            0x00 => .{
+                .type = .brk,
+                .mode = .implied,
+                .cycles = 7,
+            },
             0x08 => .{
                 .type = .php,
                 .mode = .implied,
