@@ -60,6 +60,16 @@ pub fn zeroPageX(cpu: anytype) AddressReturn {
     };
 }
 
+pub fn zeroPageY(cpu: anytype) AddressReturn {
+    var address: u8 = cpu.read(cpu.pc);
+    address +%= cpu.y;
+    cpu.pc += 1;
+    return .{
+        .cycle_request = false,
+        .address = address,
+    };
+}
+
 pub fn absolute(cpu: anytype) AddressReturn {
     const lo: u16 = cpu.read(cpu.pc);
     cpu.pc += 1;
@@ -185,6 +195,23 @@ pub fn lda(cpu: anytype, ret: AddressReturn) bool {
 pub fn sta(cpu: anytype, ret: AddressReturn) bool {
     cpu.write(ret.address, cpu.a);
     return false;
+}
+
+/// LDX - Load X
+/// `X = memory`
+/// Flags:
+///     z = result == 0
+///     n = result & 0x80 != 0
+/// 0xA2 - 2 bytes - 2 cycles - #immediate
+/// 0xA6 - 2 bytes - 3 cycles - zeroPage
+/// 0xB6 - 2 bytes - 4 cycles - zeroPage,y
+/// 0xAE - 3 bytes - 4 cycles - absolute
+/// 0xBE - 3 bytes - 4 cycles* - absolute,y
+pub fn ldx(cpu: anytype, ret: AddressReturn) bool {
+    cpu.x = cpu.read(ret.address);
+    cpu.status.set(.z, cpu.x == 0x00);
+    cpu.status.set(.n, cpu.x & 0x80 != 0);
+    return ret.cycle_request;
 }
 
 /// JMP - Jump

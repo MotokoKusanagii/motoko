@@ -48,7 +48,7 @@ pub const Instruction = struct {
         // Access
         lda,
         sta,
-        // TODO: ldx,
+        ldx,
         // TODO: stx,
         // TODO: ldy,
         // TODO: sty,
@@ -88,6 +88,7 @@ pub const Instruction = struct {
         immediate,
         zero_page,
         zero_page_x,
+        zero_page_y,
         absolute,
         absolute_x,
         absolute_y,
@@ -107,6 +108,7 @@ pub const Instruction = struct {
             .immediate => instructions.immediate(cpu),
             .zero_page => instructions.zeroPage(cpu),
             .zero_page_x => instructions.zeroPageX(cpu),
+            .zero_page_y => instructions.zeroPageY(cpu),
             .absolute => instructions.absolute(cpu),
             .absolute_x => instructions.absoluteX(cpu),
             .absolute_y => instructions.absoluteY(cpu),
@@ -119,6 +121,7 @@ pub const Instruction = struct {
         return switch (self.type) {
             .lda => instructions.lda(cpu, address_return),
             .sta => instructions.sta(cpu, address_return),
+            .ldx => instructions.ldx(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -259,8 +262,18 @@ pub const Instruction = struct {
                 .mode = .indirect_x,
                 .cycles = 6,
             },
+            0xA2 => .{
+                .type = .ldx,
+                .mode = .immediate,
+                .cycles = 2,
+            },
             0xA5 => .{
                 .type = .lda,
+                .mode = .zero_page,
+                .cycles = 3,
+            },
+            0xA6 => .{
+                .type = .ldx,
                 .mode = .zero_page,
                 .cycles = 3,
             },
@@ -274,6 +287,11 @@ pub const Instruction = struct {
                 .mode = .absolute,
                 .cycles = 4,
             },
+            0xAE => .{
+                .type = .ldx,
+                .mode = .absolute,
+                .cycles = 4,
+            },
             0xB1 => .{
                 .type = .lda,
                 .mode = .indirect_y,
@@ -282,6 +300,11 @@ pub const Instruction = struct {
             0xB5 => .{
                 .type = .lda,
                 .mode = .zero_page_x,
+                .cycles = 4,
+            },
+            0xB6 => .{
+                .type = .ldx,
+                .mode = .zero_page_y,
                 .cycles = 4,
             },
             0xB8 => .{
@@ -302,6 +325,11 @@ pub const Instruction = struct {
             0xBD => .{
                 .type = .lda,
                 .mode = .absolute_x,
+                .cycles = 4,
+            },
+            0xBE => .{
+                .type = .ldx,
+                .mode = .absolute_y,
                 .cycles = 4,
             },
             0xD8 => .{
