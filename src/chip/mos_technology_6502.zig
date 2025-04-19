@@ -60,6 +60,8 @@ pub const Instruction = struct {
         // Arithmetic
         adc,
         sbc,
+        inc,
+        dec,
         // Jump
         jmp,
         jsr,
@@ -134,6 +136,8 @@ pub const Instruction = struct {
             .tya => instructions.tya(cpu, address_return),
             .adc => instructions.adc(cpu, address_return),
             .sbc => instructions.sbc(cpu, address_return),
+            .inc => instructions.inc(cpu, address_return),
+            .dec => instructions.dec(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -459,15 +463,40 @@ pub const Instruction = struct {
                 .mode = .absolute_y,
                 .cycles = 4,
             },
+            0xC6 => .{
+                .type = .dec,
+                .mode = .zero_page,
+                .cycles = 5,
+            },
+            0xCE => .{
+                .type = .dec,
+                .mode = .absolute,
+                .cycles = 6,
+            },
+            0xD6 => .{
+                .type = .dec,
+                .mode = .zero_page_x,
+                .cycles = 6,
+            },
             0xD8 => .{
                 .type = .cld,
                 .mode = .implied,
                 .cycles = 2,
             },
+            0xDE => .{
+                .type = .dec,
+                .mode = .absolute_x,
+                .cycles = 7,
+            },
             0xE1 => .{
                 .type = .sbc,
                 .mode = .indirect_x,
                 .cycles = 6,
+            },
+            0xE6 => .{
+                .type = .inc,
+                .mode = .zero_page,
+                .cycles = 5,
             },
             0xE5 => .{
                 .type = .sbc,
@@ -489,6 +518,11 @@ pub const Instruction = struct {
                 .mode = .absolute,
                 .cycles = 4,
             },
+            0xEE => .{
+                .type = .inc,
+                .mode = .absolute,
+                .cycles = 6,
+            },
             0xF1 => .{
                 .type = .sbc,
                 .mode = .indirect_y,
@@ -498,6 +532,11 @@ pub const Instruction = struct {
                 .type = .sbc,
                 .mode = .zero_page_x,
                 .cycles = 4,
+            },
+            0xF6 => .{
+                .type = .inc,
+                .mode = .zero_page_x,
+                .cycles = 6,
             },
             0xF8 => .{
                 .type = .sed,
@@ -513,6 +552,11 @@ pub const Instruction = struct {
                 .type = .sbc,
                 .mode = .absolute_x,
                 .cycles = 4,
+            },
+            0xFE => .{
+                .type = .inc,
+                .mode = .absolute_x,
+                .cycles = 7,
             },
             else => .{
                 .type = .unknown,

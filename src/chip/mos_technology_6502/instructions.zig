@@ -365,6 +365,42 @@ pub fn sbc(cpu: anytype, ret: AddressReturn) bool {
     return ret.cycle_request;
 }
 
+/// INC - Increment Memory
+/// `memory = memory + 1`
+/// Flags:
+///     z = result == 0
+///     n = result 0x80 != 0
+/// 0xE6 - 2 bytes - 5 cycles - zeroPage
+/// 0xF6 - 2 bytes - 6 cycles - zeroPage,x
+/// 0xEE - 3 bytes - 6 cycles - absolute
+/// 0xFE - 3 bytes - 7 cycles - absolute,x
+pub fn inc(cpu: anytype, ret: AddressReturn) bool {
+    const memory = cpu.read(ret.address);
+    const result = memory +% 1;
+    cpu.write(ret.address, result);
+    cpu.status.set(.z, result == 0x00);
+    cpu.status.set(.n, result & 0x80 != 0);
+    return false;
+}
+
+/// DEC - Decrement Memory
+/// `memory = memory - 1`
+/// Flags:
+///     z = result == 0
+///     n = result 0x80 != 0
+/// 0xC6 - 2 bytes - 5 cycles - zeroPage
+/// 0xD6 - 2 bytes - 6 cycles - zeroPage,x
+/// 0xCE - 3 bytes - 6 cycles - absolute
+/// 0xDE - 3 bytes - 7 cycles - absolute,x
+pub fn dec(cpu: anytype, ret: AddressReturn) bool {
+    const memory = cpu.read(ret.address);
+    const result = memory -% 1;
+    cpu.write(ret.address, result);
+    cpu.status.set(.z, result == 0x00);
+    cpu.status.set(.n, result & 0x80 != 0);
+    return false;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute
