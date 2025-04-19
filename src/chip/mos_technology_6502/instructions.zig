@@ -303,6 +303,37 @@ pub fn tya(cpu: anytype, _: AddressReturn) bool {
     return false;
 }
 
+/// ADC - Add with Carry
+/// `A = A + memory + C`
+/// Flags:
+///     c = result > 0xFF
+///     z = result == 0
+///     v = (result ^ A) & (result ^ memory) & 0x80
+///     n = result 0x80 != 0
+/// 0x69 - 2 bytes - 2 cycles - #immediate
+/// 0x65 - 2 bytes - 3 cycles - zeroPage
+/// 0x75 - 2 bytes - 4 cycles - zeroPage,x
+/// 0x6D - 3 bytes - 4 cycles - absolute
+/// 0x7D - 3 bytes - 4 cycles* - absolute,x
+/// 0x79 - 3 bytes - 4 cycles* - absolute,y
+/// 0x61 - 2 bytes - 6 cycles - (indirect,x)
+/// 0x71 - 2 bytes - 5 cycles* - (indirect),y
+pub fn adc(cpu: anytype, ret: AddressReturn) bool {
+    const m: u16 = cpu.read(ret.address);
+    const c: u16 = @intFromBool(cpu.status.isSet(.c));
+    const a: u16 = cpu.a;
+
+    const r: u16 = a + m + c;
+    cpu.status.set(.c, r > 0xFF);
+    cpu.status.set(.z, r & 0x00FF == 0x00);
+    cpu.status.set(.v, ~(a ^ m) & (a ^ r) & 0x80 != 0);
+    cpu.status.set(.n, r & 0x80 != 0);
+
+    cpu.a = @truncate(r);
+
+    return ret.cycle_request;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute

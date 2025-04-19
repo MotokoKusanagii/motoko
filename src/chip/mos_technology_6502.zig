@@ -57,6 +57,8 @@ pub const Instruction = struct {
         txa,
         tay,
         tya,
+        // Arithmetic
+        adc,
         // Jump
         jmp,
         jsr,
@@ -129,6 +131,7 @@ pub const Instruction = struct {
             .txa => instructions.txa(cpu, address_return),
             .tay => instructions.tay(cpu, address_return),
             .tya => instructions.tya(cpu, address_return),
+            .adc => instructions.adc(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -209,20 +212,60 @@ pub const Instruction = struct {
                 .mode = .implied,
                 .cycles = 6,
             },
+            0x61 => .{
+                .type = .adc,
+                .mode = .indirect_x,
+                .cycles = 6,
+            },
+            0x65 => .{
+                .type = .adc,
+                .mode = .zero_page,
+                .cycles = 3,
+            },
             0x68 => .{
                 .type = .pla,
                 .mode = .implied,
                 .cycles = 4,
+            },
+            0x69 => .{
+                .type = .adc,
+                .mode = .immediate,
+                .cycles = 2,
             },
             0x6C => .{
                 .type = .jmp,
                 .mode = .indirect,
                 .cycles = 5,
             },
+            0x6D => .{
+                .type = .adc,
+                .mode = .absolute,
+                .cycles = 4,
+            },
+            0x71 => .{
+                .type = .adc,
+                .mode = .indirect_y,
+                .cycles = 5,
+            },
+            0x75 => .{
+                .type = .adc,
+                .mode = .zero_page_x,
+                .cycles = 4,
+            },
             0x78 => .{
                 .type = .sei,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0x79 => .{
+                .type = .adc,
+                .mode = .absolute_y,
+                .cycles = 4,
+            },
+            0x7D => .{
+                .type = .adc,
+                .mode = .absolute_x,
+                .cycles = 4,
             },
             0x81 => .{
                 .type = .sta,
