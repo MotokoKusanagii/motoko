@@ -62,6 +62,11 @@ pub const Instruction = struct {
         sbc,
         inc,
         dec,
+        inx,
+        dex,
+        iny,
+        dey,
+        // TODO: Shift
         // Jump
         jmp,
         jsr,
@@ -138,6 +143,10 @@ pub const Instruction = struct {
             .sbc => instructions.sbc(cpu, address_return),
             .inc => instructions.inc(cpu, address_return),
             .dec => instructions.dec(cpu, address_return),
+            .inx => instructions.inx(cpu, address_return),
+            .dex => instructions.dex(cpu, address_return),
+            .iny => instructions.iny(cpu, address_return),
+            .dey => instructions.dey(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -292,6 +301,11 @@ pub const Instruction = struct {
                 .type = .stx,
                 .mode = .zero_page,
                 .cycles = 3,
+            },
+            0x88 => .{
+                .type = .dey,
+                .mode = .implied,
+                .cycles = 2,
             },
             0x8A => .{
                 .type = .txa,
@@ -468,6 +482,16 @@ pub const Instruction = struct {
                 .mode = .zero_page,
                 .cycles = 5,
             },
+            0xC8 => .{
+                .type = .iny,
+                .mode = .implied,
+                .cycles = 2,
+            },
+            0xCA => .{
+                .type = .dex,
+                .mode = .implied,
+                .cycles = 2,
+            },
             0xCE => .{
                 .type = .dec,
                 .mode = .absolute,
@@ -502,6 +526,11 @@ pub const Instruction = struct {
                 .type = .sbc,
                 .mode = .zero_page,
                 .cycles = 3,
+            },
+            0xE8 => .{
+                .type = .inx,
+                .mode = .implied,
+                .cycles = 2,
             },
             0xE9 => .{
                 .type = .sbc,

@@ -1052,6 +1052,58 @@ test "dec absolute,x" {
     try testing.expect(cpu.status.isSet(.n));
 }
 
+test "inx implied" {
+    var bus = TestBus.setup(&.{0xE8});
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0xFF;
+    cpu.clock(); // wrap to 0
+
+    try std.testing.expectEqual(@as(u8, 0x00), cpu.x);
+    try std.testing.expect(cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "dex implied" {
+    var bus = TestBus.setup(&.{0xCA});
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x01;
+    cpu.clock(); // → 0x00
+
+    try std.testing.expectEqual(@as(u8, 0x00), cpu.x);
+    try std.testing.expect(cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "iny implied" {
+    var bus = TestBus.setup(&.{0xC8});
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.y = 0xFF;
+    cpu.clock(); // → 0x00
+
+    try std.testing.expectEqual(@as(u8, 0x00), cpu.y);
+    try std.testing.expect(cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "dey implied" {
+    var bus = TestBus.setup(&.{0x88});
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.y = 0x01;
+    cpu.clock(); // → 0x00
+
+    try std.testing.expectEqual(@as(u8, 0x00), cpu.y);
+    try std.testing.expect(cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
 test "jmp (indirect)" {
     // JMP ($ABBA)
     var bus = TestBus.setup(&.{ 0x6C, 0xBA, 0xAB });

@@ -401,6 +401,54 @@ pub fn dec(cpu: anytype, ret: AddressReturn) bool {
     return false;
 }
 
+/// INX - Increment X
+/// Flags:
+///     z = result == 0
+///     n = result 0x80 != 0
+/// 0xE8 - 1 byte - 2 cycles - implied
+pub fn inx(cpu: anytype, _: AddressReturn) bool {
+    cpu.x +%= 1;
+    cpu.status.set(.z, cpu.x == 0x00);
+    cpu.status.set(.n, cpu.x & 0x80 != 0);
+    return false;
+}
+
+/// DEX - Decrement X
+/// Flags:
+///     z = result == 0
+///     n = result 0x80 != 0
+/// 0xCA - 1 byte - 2 cycles - implied
+pub fn dex(cpu: anytype, _: AddressReturn) bool {
+    cpu.x -%= 1;
+    cpu.status.set(.z, cpu.x == 0x00);
+    cpu.status.set(.n, cpu.x & 0x80 != 0);
+    return false;
+}
+
+/// INY - Increment Y
+/// Flags:
+///     z = result == 0
+///     n = result 0x80 != 0
+/// 0xC8 - 1 byte - 2 cycles - implied
+pub fn iny(cpu: anytype, _: AddressReturn) bool {
+    cpu.y +%= 1;
+    cpu.status.set(.z, cpu.y == 0x00);
+    cpu.status.set(.n, cpu.y & 0x80 != 0);
+    return false;
+}
+
+/// DEY - Decrement Y
+/// Flags:
+///     z = result == 0
+///     n = result 0x80 != 0
+/// 0x88 - 1 byte - 2 cycles - implied
+pub fn dey(cpu: anytype, _: AddressReturn) bool {
+    cpu.y -%= 1;
+    cpu.status.set(.z, cpu.y == 0x00);
+    cpu.status.set(.n, cpu.y & 0x80 != 0);
+    return false;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute
