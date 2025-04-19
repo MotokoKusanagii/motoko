@@ -768,6 +768,165 @@ test "adc (indirect),y" {
     try testing.expectEqual(4, cpu.cycles_left);
 }
 
+test "sbc #immediate" {
+    // SBC #$10
+    var bus = TestBus.setup(&.{ 0xE9, 0x10 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0x20;
+    cpu.status.set(.c, true);
+
+    cpu.clock();
+
+    try testing.expectEqual(0x10, cpu.a);
+    try testing.expect(cpu.status.isSet(.c));
+    try testing.expect(!cpu.status.isSet(.z));
+    try testing.expect(!cpu.status.isSet(.v));
+    try testing.expect(!cpu.status.isSet(.n));
+}
+
+test "sbc zeroPage" {
+    // SBC $50
+    var bus = TestBus.setup(&.{ 0xE5, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    bus.data[0x0050] = 0x20;
+    cpu.a = 0x20;
+    cpu.status.set(.c, true);
+
+    cpu.clock();
+
+    try testing.expectEqual(0x00, cpu.a);
+    try testing.expect(cpu.status.isSet(.c));
+    try testing.expect(cpu.status.isSet(.z));
+    try testing.expect(!cpu.status.isSet(.v));
+    try testing.expect(!cpu.status.isSet(.n));
+}
+
+test "sbc zeroPage,x" {
+    // SBC $50,x
+    var bus = TestBus.setup(&.{ 0xF5, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    bus.data[0x0055] = 0x01;
+    cpu.a = 0x00;
+    cpu.x = 0x05;
+    cpu.status.set(.c, false); // simulate borrow (subtract 1 more)
+
+    cpu.clock();
+
+    try testing.expectEqual(0xFE, cpu.a);
+    try testing.expect(!cpu.status.isSet(.c));
+    try testing.expect(!cpu.status.isSet(.z));
+    try testing.expect(!cpu.status.isSet(.v));
+    try testing.expect(cpu.status.isSet(.n));
+}
+
+test "sbc absolute" {
+    // SBC $5030
+    var bus = TestBus.setup(&.{ 0xED, 0x30, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    bus.data[0x5030] = 0x80;
+    cpu.a = 0x7F;
+    cpu.status.set(.c, true);
+
+    cpu.clock();
+
+    try testing.expectEqual(0xFF, cpu.a);
+    try testing.expect(!cpu.status.isSet(.c));
+    try testing.expect(!cpu.status.isSet(.z));
+    try testing.expect(cpu.status.isSet(.v));
+    try testing.expect(cpu.status.isSet(.n));
+}
+
+test "sbc absolute,x" {
+    // SBC $50E0,x
+    var bus = TestBus.setup(&.{ 0xFD, 0xE0, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    bus.data[0x5100] = 0x01;
+    cpu.a = 0x01;
+    cpu.x = 0x20;
+    cpu.status.set(.c, true);
+
+    cpu.clock();
+
+    try testing.expectEqual(0x00, cpu.a);
+    try testing.expect(cpu.status.isSet(.z));
+    try testing.expect(cpu.status.isSet(.c));
+    try testing.expect(!cpu.status.isSet(.v));
+    try testing.expect(!cpu.status.isSet(.n));
+}
+
+test "sbc absolute,y" {
+    // SBC $5030,y
+    var bus = TestBus.setup(&.{ 0xF9, 0x30, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    bus.data[0x5040] = 0x01;
+    cpu.a = 0x01;
+    cpu.y = 0x10;
+    cpu.status.set(.c, true);
+
+    cpu.clock();
+
+    try testing.expectEqual(0x00, cpu.a);
+    try testing.expect(cpu.status.isSet(.z));
+    try testing.expect(cpu.status.isSet(.c));
+    try testing.expect(!cpu.status.isSet(.n));
+}
+
+test "sbc (indirect,x)" {
+    // SBC ($50,x)
+    var bus = TestBus.setup(&.{ 0xE1, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    bus.data[0x0060] = 0x50;
+    bus.data[0x0061] = 0x70; // 0x7050
+    bus.data[0x7050] = 0x01;
+    cpu.x = 0x10;
+    cpu.a = 0x01;
+    cpu.status.set(.c, true);
+
+    cpu.clock();
+
+    try testing.expectEqual(0x00, cpu.a);
+    try testing.expect(cpu.status.isSet(.z));
+    try testing.expect(cpu.status.isSet(.c));
+    try testing.expect(!cpu.status.isSet(.v));
+    try testing.expect(!cpu.status.isSet(.n));
+}
+
+test "sbc (indirect),y" {
+    // SBC ($50),y
+    var bus = TestBus.setup(&.{ 0xF1, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    bus.data[0x0050] = 0x50;
+    bus.data[0x0051] = 0x70; // 0x7050
+    bus.data[0x7060] = 0x01;
+    cpu.y = 0x10;
+    cpu.a = 0x01;
+    cpu.status.set(.c, true);
+
+    cpu.clock();
+
+    try testing.expectEqual(0x00, cpu.a);
+    try testing.expect(cpu.status.isSet(.z));
+    try testing.expect(cpu.status.isSet(.c));
+    try testing.expect(!cpu.status.isSet(.v));
+    try testing.expect(!cpu.status.isSet(.n));
+}
+
 test "jmp (indirect)" {
     // JMP ($ABBA)
     var bus = TestBus.setup(&.{ 0x6C, 0xBA, 0xAB });

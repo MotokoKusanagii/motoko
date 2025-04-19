@@ -59,6 +59,7 @@ pub const Instruction = struct {
         tya,
         // Arithmetic
         adc,
+        sbc,
         // Jump
         jmp,
         jsr,
@@ -132,6 +133,7 @@ pub const Instruction = struct {
             .tay => instructions.tay(cpu, address_return),
             .tya => instructions.tya(cpu, address_return),
             .adc => instructions.adc(cpu, address_return),
+            .sbc => instructions.sbc(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -462,15 +464,55 @@ pub const Instruction = struct {
                 .mode = .implied,
                 .cycles = 2,
             },
+            0xE1 => .{
+                .type = .sbc,
+                .mode = .indirect_x,
+                .cycles = 6,
+            },
+            0xE5 => .{
+                .type = .sbc,
+                .mode = .zero_page,
+                .cycles = 3,
+            },
+            0xE9 => .{
+                .type = .sbc,
+                .mode = .immediate,
+                .cycles = 2,
+            },
             0xEA => .{
                 .type = .nop,
                 .mode = .implied,
                 .cycles = 2,
             },
+            0xED => .{
+                .type = .sbc,
+                .mode = .absolute,
+                .cycles = 4,
+            },
+            0xF1 => .{
+                .type = .sbc,
+                .mode = .indirect_y,
+                .cycles = 5,
+            },
+            0xF5 => .{
+                .type = .sbc,
+                .mode = .zero_page_x,
+                .cycles = 4,
+            },
             0xF8 => .{
                 .type = .sed,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0xF9 => .{
+                .type = .sbc,
+                .mode = .absolute_y,
+                .cycles = 4,
+            },
+            0xFD => .{
+                .type = .sbc,
+                .mode = .absolute_x,
+                .cycles = 4,
             },
             else => .{
                 .type = .unknown,

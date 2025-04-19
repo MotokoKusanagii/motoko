@@ -334,6 +334,37 @@ pub fn adc(cpu: anytype, ret: AddressReturn) bool {
     return ret.cycle_request;
 }
 
+/// SBC - Subtract with Carry
+/// `A = A - memory - ~C`, or `A = A + ~memory + C`
+/// Flags:
+///     c = ~(result < 0x00)
+///     z = result == 0
+///     v = (result ^ A) & (result ^ ~memory) & 0x80 != 0
+///     n = result 0x80 != 0
+/// 0xE9 - 2 bytes - 2 cycles - #immediate
+/// 0xE5 - 2 bytes - 3 cycles - zeroPage
+/// 0xF5 - 2 bytes - 4 cycles - zeroPage,x
+/// 0xED - 3 bytes - 4 cycles - absolute
+/// 0xFD - 3 bytes - 4 cycles* - absolute,x
+/// 0xF9 - 3 bytes - 4 cycles* - absolute,y
+/// 0xE1 - 2 bytes - 6 cycles - (indirect,x)
+/// 0xF1 - 2 bytes - 5 cycles* - (indirect),y
+pub fn sbc(cpu: anytype, ret: AddressReturn) bool {
+    const m: u16 = cpu.read(ret.address);
+    const c: u16 = @intFromBool(cpu.status.isSet(.c));
+    const a: u16 = cpu.a;
+
+    const r: u16 = a + (~m & 0x00FF) + c;
+    cpu.status.set(.c, r & 0xFF00 != 0);
+    cpu.status.set(.z, r & 0x00FF == 0x00);
+    cpu.status.set(.v, (r ^ a) & (r ^ ~m) & 0x80 != 0);
+    cpu.status.set(.n, r & 0x80 != 0);
+
+    cpu.a = @truncate(r);
+
+    return ret.cycle_request;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute
