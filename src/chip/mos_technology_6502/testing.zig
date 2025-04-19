@@ -560,6 +560,58 @@ test "sty absolute" {
     try std.testing.expectEqual(0xBC, bus.data[0x4264]);
 }
 
+test "tax implied" {
+    var bus = TestBus.setup(&.{0xAA});
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.a = 0xFA;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xFA, cpu.x);
+}
+
+test "txa implied" {
+    var bus = TestBus.setup(&.{0x8A});
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.x = 0xFA;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xFA, cpu.a);
+}
+
+test "tay implied" {
+    var bus = TestBus.setup(&.{0xA8});
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.a = 0xFA;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xFA, cpu.y);
+}
+
+test "tya implied" {
+    var bus = TestBus.setup(&.{0x98});
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    // Prepare data
+    cpu.y = 0xFA;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0xFA, cpu.a);
+}
+
 test "jmp (indirect)" {
     // JMP ($ABBA)
     var bus = TestBus.setup(&.{ 0x6C, 0xBA, 0xAB });

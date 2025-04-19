@@ -251,6 +251,58 @@ pub fn sty(cpu: anytype, ret: AddressReturn) bool {
     return false;
 }
 
+/// TAX - Transfer A to X
+/// `X = A`
+/// Flags:
+///     z = result == 0
+///     n = result & 0x80 != 0
+/// 0xAA - 1 byte - 2 cycles - implied
+pub fn tax(cpu: anytype, _: AddressReturn) bool {
+    cpu.x = cpu.a;
+    cpu.status.set(.z, cpu.x == 0x00);
+    cpu.status.set(.n, cpu.x & 0x80 != 0);
+    return false;
+}
+
+/// TXA - Transfer X to A
+/// `A = X`
+/// Flags:
+///     z = result == 0
+///     n = result & 0x80 != 0
+/// 0x8A - 1 byte - 2 cycles - implied
+pub fn txa(cpu: anytype, _: AddressReturn) bool {
+    cpu.a = cpu.x;
+    cpu.status.set(.z, cpu.a == 0x00);
+    cpu.status.set(.n, cpu.a & 0x80 != 0);
+    return false;
+}
+
+/// TAY - Transfer A to Y
+/// `Y = A`
+/// Flags:
+///     z = result == 0
+///     n = result & 0x80 != 0
+/// 0xA8 - 1 byte - 2 cycles - implied
+pub fn tay(cpu: anytype, _: AddressReturn) bool {
+    cpu.y = cpu.a;
+    cpu.status.set(.z, cpu.y == 0x00);
+    cpu.status.set(.n, cpu.y & 0x80 != 0);
+    return false;
+}
+
+/// TYA - Transfer Y to A
+/// `A = Y`
+/// Flags:
+///     z = result == 0
+///     n = result & 0x80 != 0
+/// 0x98 - 1 byte - 2 cycles - implied
+pub fn tya(cpu: anytype, _: AddressReturn) bool {
+    cpu.a = cpu.y;
+    cpu.status.set(.z, cpu.a == 0x00);
+    cpu.status.set(.n, cpu.a & 0x80 != 0);
+    return false;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute

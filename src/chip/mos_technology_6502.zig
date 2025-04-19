@@ -53,10 +53,10 @@ pub const Instruction = struct {
         ldy,
         sty,
         // Transfer
-        // TODO: tax,
-        // TODO: txa,
-        // TODO: tay,
-        // TODO: tya,
+        tax,
+        txa,
+        tay,
+        tya,
         // Jump
         jmp,
         jsr,
@@ -125,6 +125,10 @@ pub const Instruction = struct {
             .stx => instructions.stx(cpu, address_return),
             .ldy => instructions.ldy(cpu, address_return),
             .sty => instructions.sty(cpu, address_return),
+            .tax => instructions.tax(cpu, address_return),
+            .txa => instructions.txa(cpu, address_return),
+            .tay => instructions.tay(cpu, address_return),
+            .tya => instructions.tya(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -240,6 +244,11 @@ pub const Instruction = struct {
                 .mode = .zero_page,
                 .cycles = 3,
             },
+            0x8A => .{
+                .type = .txa,
+                .mode = .implied,
+                .cycles = 2,
+            },
             0x8C => .{
                 .type = .sty,
                 .mode = .absolute,
@@ -274,6 +283,11 @@ pub const Instruction = struct {
                 .type = .stx,
                 .mode = .zero_page_y,
                 .cycles = 4,
+            },
+            0x98 => .{
+                .type = .tya,
+                .mode = .implied,
+                .cycles = 2,
             },
             0x99 => .{
                 .type = .sta,
@@ -320,9 +334,19 @@ pub const Instruction = struct {
                 .mode = .zero_page,
                 .cycles = 3,
             },
+            0xA8 => .{
+                .type = .tay,
+                .mode = .implied,
+                .cycles = 2,
+            },
             0xA9 => .{
                 .type = .lda,
                 .mode = .immediate,
+                .cycles = 2,
+            },
+            0xAA => .{
+                .type = .tax,
+                .mode = .implied,
                 .cycles = 2,
             },
             0xAC => .{
