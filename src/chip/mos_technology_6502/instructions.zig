@@ -518,6 +518,38 @@ pub fn lsr(cpu: anytype, ret: AddressReturn) bool {
     return false;
 }
 
+/// ROL - Rotate Left
+/// `value = value << 1 through C` or `C <- [76543210] <- C`
+/// Flags:
+///     c = value bit 7
+///     z = result == 0
+///     n = result 0x80 != 0
+/// 0x2A - 1 byte - 2 cycles - accumulator
+/// 0x26 - 2 bytes - 5 cycles - zeroPage
+/// 0x36 - 2 bytes - 6 cycles - zeroPage,x
+/// 0x2E - 3 bytes - 6 cycles - absolute
+/// 0x3E - 3 bytes - 7 cycles - absolute,x
+pub fn rol(cpu: anytype, ret: AddressReturn) bool {
+    if (ret.accumulator) {
+        const c: u16 = @intFromBool(cpu.status.isSet(.c));
+        const value: u16 = cpu.a;
+        const result = value << 1 | c;
+        cpu.status.set(.c, result & 0xFF00 > 0);
+        cpu.status.set(.z, result & 0x00FF == 0);
+        cpu.status.set(.n, result & 0x80 != 0);
+        cpu.a = @truncate(result);
+    } else {
+        const c: u16 = @intFromBool(cpu.status.isSet(.c));
+        const value: u16 = cpu.read(ret.address);
+        const result = value << 1 | c;
+        cpu.status.set(.c, result & 0xFF00 > 0);
+        cpu.status.set(.z, result & 0x00FF == 0);
+        cpu.status.set(.n, result & 0x80 != 0);
+        cpu.write(ret.address, @truncate(result));
+    }
+    return false;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute
