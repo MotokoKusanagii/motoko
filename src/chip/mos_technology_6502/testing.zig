@@ -1340,6 +1340,88 @@ test "rol absolute,x" {
     try std.testing.expect(!cpu.status.isSet(.c)); // bit 7 was 0
 }
 
+test "ror accumulator" {
+    var bus = TestBus.setup(&.{0x6A});
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0b0000_0011;
+    cpu.status.set(.c, true); // carry in becomes bit 7
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0b1000_0001), cpu.a);
+    try std.testing.expect(cpu.status.isSet(.c)); // bit 0 was 1
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
+test "ror zeroPage" {
+    var bus = TestBus.setup(&.{ 0x66, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    bus.data[0x0050] = 0b0000_0001;
+    cpu.status.set(.c, false); // bit 7 = 0 after rotate
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0b0000_0000), bus.data[0x0050]);
+    try std.testing.expect(cpu.status.isSet(.c)); // bit 0 was 1
+    try std.testing.expect(cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "ror zeroPage,x" {
+    var bus = TestBus.setup(&.{ 0x76, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x05;
+    bus.data[0x0055] = 0b1111_1110;
+    cpu.status.set(.c, true);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0b1111_1111), bus.data[0x0055]);
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+    try std.testing.expect(!cpu.status.isSet(.c)); // bit 0 was 0
+}
+
+test "ror absolute" {
+    var bus = TestBus.setup(&.{ 0x6E, 0x30, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    bus.data[0x5030] = 0b0000_0001;
+    cpu.status.set(.c, true); // C becomes bit 7
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0b1000_0000), bus.data[0x5030]);
+    try std.testing.expect(cpu.status.isSet(.c)); // bit 0 was 1
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
+test "ror absolute,x" {
+    var bus = TestBus.setup(&.{ 0x7E, 0xE0, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x10;
+    bus.data[0x50F0] = 0b0000_0000;
+    cpu.status.set(.c, true);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0b1000_0000), bus.data[0x50F0]);
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+    try std.testing.expect(!cpu.status.isSet(.c)); // bit 0 was 0
+}
+
 test "jmp (indirect)" {
     // JMP ($ABBA)
     var bus = TestBus.setup(&.{ 0x6C, 0xBA, 0xAB });

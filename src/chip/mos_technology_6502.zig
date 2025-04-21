@@ -70,6 +70,7 @@ pub const Instruction = struct {
         asl,
         lsr,
         rol,
+        ror,
         // Jump
         jmp,
         jsr,
@@ -155,6 +156,7 @@ pub const Instruction = struct {
             .asl => instructions.asl(cpu, address_return),
             .lsr => instructions.lsr(cpu, address_return),
             .rol => instructions.rol(cpu, address_return),
+            .ror => instructions.ror(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -320,6 +322,11 @@ pub const Instruction = struct {
                 .mode = .zero_page,
                 .cycles = 3,
             },
+            0x66 => .{
+                .type = .ror,
+                .mode = .zero_page,
+                .cycles = 5,
+            },
             0x68 => .{
                 .type = .pla,
                 .mode = .implied,
@@ -328,6 +335,11 @@ pub const Instruction = struct {
             0x69 => .{
                 .type = .adc,
                 .mode = .immediate,
+                .cycles = 2,
+            },
+            0x6A => .{
+                .type = .ror,
+                .mode = .accumulator,
                 .cycles = 2,
             },
             0x6C => .{
@@ -340,6 +352,11 @@ pub const Instruction = struct {
                 .mode = .absolute,
                 .cycles = 4,
             },
+            0x6E => .{
+                .type = .ror,
+                .mode = .absolute,
+                .cycles = 6,
+            },
             0x71 => .{
                 .type = .adc,
                 .mode = .indirect_y,
@@ -349,6 +366,11 @@ pub const Instruction = struct {
                 .type = .adc,
                 .mode = .zero_page_x,
                 .cycles = 4,
+            },
+            0x76 => .{
+                .type = .ror,
+                .mode = .zero_page_x,
+                .cycles = 6,
             },
             0x78 => .{
                 .type = .sei,
@@ -364,6 +386,11 @@ pub const Instruction = struct {
                 .type = .adc,
                 .mode = .absolute_x,
                 .cycles = 4,
+            },
+            0x7E => .{
+                .type = .ror,
+                .mode = .absolute_x,
+                .cycles = 7,
             },
             0x81 => .{
                 .type = .sta,
