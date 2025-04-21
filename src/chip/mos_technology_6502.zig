@@ -68,6 +68,7 @@ pub const Instruction = struct {
         dey,
         // TODO: Shift
         asl,
+        lsr,
         // Jump
         jmp,
         jsr,
@@ -151,6 +152,7 @@ pub const Instruction = struct {
             .iny => instructions.iny(cpu, address_return),
             .dey => instructions.dey(cpu, address_return),
             .asl => instructions.asl(cpu, address_return),
+            .lsr => instructions.lsr(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -236,20 +238,45 @@ pub const Instruction = struct {
                 .mode = .implied,
                 .cycles = 6,
             },
+            0x46 => .{
+                .type = .lsr,
+                .mode = .zero_page,
+                .cycles = 5,
+            },
             0x48 => .{
                 .type = .pha,
                 .mode = .implied,
                 .cycles = 3,
+            },
+            0x4A => .{
+                .type = .lsr,
+                .mode = .accumulator,
+                .cycles = 2,
             },
             0x4C => .{
                 .type = .jmp,
                 .mode = .absolute,
                 .cycles = 3,
             },
+            0x4E => .{
+                .type = .lsr,
+                .mode = .absolute,
+                .cycles = 6,
+            },
+            0x56 => .{
+                .type = .lsr,
+                .mode = .zero_page_x,
+                .cycles = 6,
+            },
             0x58 => .{
                 .type = .cli,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0x5E => .{
+                .type = .lsr,
+                .mode = .absolute_x,
+                .cycles = 7,
             },
             0x60 => .{
                 .type = .rts,

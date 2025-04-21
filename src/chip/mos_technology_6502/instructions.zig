@@ -488,6 +488,36 @@ pub fn asl(cpu: anytype, ret: AddressReturn) bool {
     return false;
 }
 
+/// LSR - Logical Shift Right
+/// `value = value >> 1` or `0 -> [76543210] -> C`
+/// Flags:
+///     c = value bit 0
+///     z = result == 0
+///     n = result 0x80 != 0
+/// 0x4A - 1 byte - 2 cycles - accumulator
+/// 0X46 - 2 bytes - 5 cycles - zeroPage
+/// 0x56 - 2 bytes - 6 cycles - zeroPage,x
+/// 0x4E - 3 bytes - 6 cycles - absolute
+/// 0x5E - 3 bytes - 7 cycles - absolute,x
+pub fn lsr(cpu: anytype, ret: AddressReturn) bool {
+    if (ret.accumulator) {
+        const value: u16 = cpu.a;
+        const result = value >> 1;
+        cpu.status.set(.c, value & 0x0001 != 0);
+        cpu.status.set(.z, result & 0x00FF == 0);
+        cpu.status.set(.n, result & 0x80 != 0);
+        cpu.a = @truncate(result);
+    } else {
+        const value: u16 = cpu.read(ret.address);
+        const result = value >> 1;
+        cpu.status.set(.c, value & 0x0001 != 0);
+        cpu.status.set(.z, result & 0x00FF == 0);
+        cpu.status.set(.n, result & 0x80 != 0);
+        cpu.write(ret.address, @truncate(result));
+    }
+    return false;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute
