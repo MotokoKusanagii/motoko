@@ -6,6 +6,7 @@ const Status = @import("../mos_technology_6502.zig").Status;
 pub const AddressReturn = struct {
     cycle_request: bool,
     address: u16,
+    accumulator: bool = false,
 };
 
 pub const micro = struct {
@@ -24,6 +25,14 @@ pub const micro = struct {
         return (hi << 8) | lo;
     }
 };
+
+pub fn accumulator(_: anytype) AddressReturn {
+    return .{
+        .cycle_request = false,
+        .address = 0x00,
+        .accumulator = true,
+    };
+}
 
 pub fn implied(_: anytype) AddressReturn {
     return .{
@@ -446,6 +455,36 @@ pub fn dey(cpu: anytype, _: AddressReturn) bool {
     cpu.y -%= 1;
     cpu.status.set(.z, cpu.y == 0x00);
     cpu.status.set(.n, cpu.y & 0x80 != 0);
+    return false;
+}
+
+/// ASL - Arithmetic Shift Left
+/// `value = value << 1` or `C <- [76543210] <- 0`
+/// Flags:
+///     c = old bit 7
+///     z = result == 0
+///     n = result 0x80 != 0
+/// 0x0A - 1 byte - 2 cycles - accumulator
+/// 0x06 - 2 bytes - 5 cycles - zeroPage
+/// 0x16 - 2 bytes - 6 cycles - zeroPage,x
+/// 0x0E - 3 bytes - 6 cycles - absolute
+/// 0x1E - 3 bytes - 7 cycles - absolute,x
+pub fn asl(cpu: anytype, ret: AddressReturn) bool {
+    if (ret.accumulator) {
+        const value: u16 = cpu.a;
+        const result = value << 1;
+        cpu.status.set(.c, result & 0xFF00 > 0);
+        cpu.status.set(.z, result & 0x00FF == 0);
+        cpu.status.set(.n, result & 0x80 != 0);
+        cpu.a = @truncate(result);
+    } else {
+        const value: u16 = cpu.read(ret.address);
+        const result = value << 1;
+        cpu.status.set(.c, result & 0xFF00 != 0);
+        cpu.status.set(.z, result & 0x00FF == 0);
+        cpu.status.set(.n, result & 0x80 != 0);
+        cpu.write(ret.address, @truncate(result));
+    }
     return false;
 }
 

@@ -1104,6 +1104,83 @@ test "dey implied" {
     try std.testing.expect(!cpu.status.isSet(.n));
 }
 
+test "asl accumulator" {
+    var bus = TestBus.setup(&.{0x0A});
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0b1010_0001; // 0xA1
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x42), cpu.a); // 0xA1 << 1 = 0x142 → 0x42
+    try std.testing.expect(cpu.status.isSet(.c)); // bit 7 was 1
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "asl zeroPage" {
+    var bus = TestBus.setup(&.{ 0x06, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    bus.data[0x0050] = 0x40;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x80), bus.data[0x0050]);
+    try std.testing.expect(!cpu.status.isSet(.c));
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
+test "asl zeroPage,x" {
+    var bus = TestBus.setup(&.{ 0x16, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x05;
+    bus.data[0x0055] = 0x80;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x00), bus.data[0x0055]);
+    try std.testing.expect(cpu.status.isSet(.c));
+    try std.testing.expect(cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "asl absolute" {
+    var bus = TestBus.setup(&.{ 0x0E, 0x30, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    bus.data[0x5030] = 0xFF;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0xFE), bus.data[0x5030]);
+    try std.testing.expect(cpu.status.isSet(.c)); // bit 7 was set
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
+test "asl absolute,x" {
+    var bus = TestBus.setup(&.{ 0x1E, 0xE0, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x10;
+    bus.data[0x50F0] = 0x01;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x02), bus.data[0x50F0]);
+    try std.testing.expect(!cpu.status.isSet(.c));
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
 test "jmp (indirect)" {
     // JMP ($ABBA)
     var bus = TestBus.setup(&.{ 0x6C, 0xBA, 0xAB });

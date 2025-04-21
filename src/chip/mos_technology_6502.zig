@@ -67,6 +67,7 @@ pub const Instruction = struct {
         iny,
         dey,
         // TODO: Shift
+        asl,
         // Jump
         jmp,
         jsr,
@@ -94,6 +95,7 @@ pub const Instruction = struct {
     };
 
     pub const Mode = enum {
+        accumulator,
         implied,
         immediate,
         zero_page,
@@ -114,6 +116,7 @@ pub const Instruction = struct {
 
     pub fn run(self: Instruction, comptime CpuT: type, cpu: *CpuT) bool {
         const address_return = switch (self.mode) {
+            .accumulator => instructions.accumulator(cpu),
             .implied => instructions.implied(cpu),
             .immediate => instructions.immediate(cpu),
             .zero_page => instructions.zeroPage(cpu),
@@ -147,6 +150,7 @@ pub const Instruction = struct {
             .dex => instructions.dex(cpu, address_return),
             .iny => instructions.iny(cpu, address_return),
             .dey => instructions.dey(cpu, address_return),
+            .asl => instructions.asl(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -177,15 +181,40 @@ pub const Instruction = struct {
                 .mode = .implied,
                 .cycles = 7,
             },
+            0x06 => .{
+                .type = .asl,
+                .mode = .zero_page,
+                .cycles = 5,
+            },
             0x08 => .{
                 .type = .php,
                 .mode = .implied,
                 .cycles = 3,
             },
+            0x0A => .{
+                .type = .asl,
+                .mode = .accumulator,
+                .cycles = 2,
+            },
+            0x0E => .{
+                .type = .asl,
+                .mode = .absolute,
+                .cycles = 6,
+            },
+            0x16 => .{
+                .type = .asl,
+                .mode = .zero_page_x,
+                .cycles = 6,
+            },
             0x18 => .{
                 .type = .clc,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0x1E => .{
+                .type = .asl,
+                .mode = .absolute_x,
+                .cycles = 7,
             },
             0x20 => .{
                 .type = .jsr,
