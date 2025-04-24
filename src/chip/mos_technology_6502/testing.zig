@@ -506,17 +506,6 @@ test "ldy absolute,x" {
     try std.testing.expectEqual(4, cpu.cycles_left);
 }
 
-test "jmp absolute" {
-    // JMP $5025
-    var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });
-    var cpu = Chip(TestBus).init(&bus);
-    cpu.powerOn();
-
-    cpu.clock();
-
-    try std.testing.expectEqual(0x5025, cpu.pc);
-}
-
 test "sty zeroPage" {
     // STY $A4
     var bus = TestBus.setup(&.{ 0x84, 0xA4 });
@@ -1420,6 +1409,147 @@ test "ror absolute,x" {
     try std.testing.expect(!cpu.status.isSet(.z));
     try std.testing.expect(cpu.status.isSet(.n));
     try std.testing.expect(!cpu.status.isSet(.c)); // bit 0 was 0
+}
+
+test "and #immediate" {
+    var bus = TestBus.setup(&.{ 0x29, 0x0F });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0x3C;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x0C), cpu.a);
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "and zeroPage" {
+    var bus = TestBus.setup(&.{ 0x25, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0xF0;
+    bus.data[0x0050] = 0x0F;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x00), cpu.a);
+    try std.testing.expect(cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "and zeroPage,x" {
+    var bus = TestBus.setup(&.{ 0x35, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x05;
+    cpu.a = 0b1100_1100;
+    bus.data[0x0055] = 0b1000_1000;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0b1000_1000), cpu.a);
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
+test "and absolute" {
+    var bus = TestBus.setup(&.{ 0x2D, 0x30, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0xAA;
+    bus.data[0x5030] = 0xF0;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0xA0), cpu.a);
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
+test "and absolute,x" {
+    var bus = TestBus.setup(&.{ 0x3D, 0xE0, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x10;
+    cpu.a = 0x0F;
+    bus.data[0x50F0] = 0xF0;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x00), cpu.a);
+    try std.testing.expect(cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "and absolute,y" {
+    var bus = TestBus.setup(&.{ 0x39, 0x30, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.y = 0x10;
+    cpu.a = 0xF0;
+    bus.data[0x5040] = 0x80;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x80), cpu.a);
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
+test "and (indirect,x)" {
+    var bus = TestBus.setup(&.{ 0x21, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x10;
+    cpu.a = 0xF0;
+
+    bus.data[0x0060] = 0x00;
+    bus.data[0x0061] = 0x70;
+    bus.data[0x7000] = 0x0F;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x00), cpu.a);
+    try std.testing.expect(cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "and (indirect),y" {
+    var bus = TestBus.setup(&.{ 0x31, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.y = 0x10;
+    cpu.a = 0xF0;
+
+    bus.data[0x0050] = 0x00;
+    bus.data[0x0051] = 0x70;
+    bus.data[0x7010] = 0x0F;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x00), cpu.a);
+    try std.testing.expect(cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "jmp absolute" {
+    // JMP $5025
+    var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.clock();
+
+    try std.testing.expectEqual(0x5025, cpu.pc);
 }
 
 test "jmp (indirect)" {
