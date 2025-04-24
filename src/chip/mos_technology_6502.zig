@@ -74,6 +74,7 @@ pub const Instruction = struct {
         // TODO: Bitwise
         @"and",
         ora,
+        eor,
         // TODO: Compare
         // TODO: Branch
         // Jump
@@ -164,6 +165,7 @@ pub const Instruction = struct {
             .ror => instructions.ror(cpu, address_return),
             .@"and" => instructions.@"and"(cpu, address_return),
             .ora => instructions.ora(cpu, address_return),
+            .eor => instructions.eor(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -354,6 +356,16 @@ pub const Instruction = struct {
                 .mode = .implied,
                 .cycles = 6,
             },
+            0x41 => .{
+                .type = .eor,
+                .mode = .indirect_x,
+                .cycles = 6,
+            },
+            0x45 => .{
+                .type = .eor,
+                .mode = .zero_page,
+                .cycles = 3,
+            },
             0x46 => .{
                 .type = .lsr,
                 .mode = .zero_page,
@@ -363,6 +375,11 @@ pub const Instruction = struct {
                 .type = .pha,
                 .mode = .implied,
                 .cycles = 3,
+            },
+            0x49 => .{
+                .type = .eor,
+                .mode = .immediate,
+                .cycles = 2,
             },
             0x4A => .{
                 .type = .lsr,
@@ -374,10 +391,25 @@ pub const Instruction = struct {
                 .mode = .absolute,
                 .cycles = 3,
             },
+            0x4D => .{
+                .type = .eor,
+                .mode = .absolute,
+                .cycles = 4,
+            },
             0x4E => .{
                 .type = .lsr,
                 .mode = .absolute,
                 .cycles = 6,
+            },
+            0x51 => .{
+                .type = .eor,
+                .mode = .indirect_y,
+                .cycles = 5,
+            },
+            0x55 => .{
+                .type = .eor,
+                .mode = .zero_page_x,
+                .cycles = 4,
             },
             0x56 => .{
                 .type = .lsr,
@@ -388,6 +420,16 @@ pub const Instruction = struct {
                 .type = .cli,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0x59 => .{
+                .type = .eor,
+                .mode = .absolute_y,
+                .cycles = 4,
+            },
+            0x5D => .{
+                .type = .eor,
+                .mode = .absolute_x,
+                .cycles = 4,
             },
             0x5E => .{
                 .type = .lsr,
