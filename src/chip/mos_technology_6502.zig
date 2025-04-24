@@ -78,6 +78,7 @@ pub const Instruction = struct {
         bit,
         // TODO: Compare
         cmp,
+        cpx,
         // TODO: Branch
         // Jump
         jmp,
@@ -170,6 +171,7 @@ pub const Instruction = struct {
             .eor => instructions.eor(cpu, address_return),
             .bit => instructions.bit(cpu, address_return),
             .cmp => instructions.cmp(cpu, address_return),
+            .cpx => instructions.cpx(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -805,10 +807,20 @@ pub const Instruction = struct {
                 .mode = .absolute_x,
                 .cycles = 7,
             },
+            0xE0 => .{
+                .type = .cpx,
+                .mode = .immediate,
+                .cycles = 2,
+            },
             0xE1 => .{
                 .type = .sbc,
                 .mode = .indirect_x,
                 .cycles = 6,
+            },
+            0xE4 => .{
+                .type = .cpx,
+                .mode = .zero_page,
+                .cycles = 3,
             },
             0xE6 => .{
                 .type = .inc,
@@ -834,6 +846,11 @@ pub const Instruction = struct {
                 .type = .nop,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0xEC => .{
+                .type = .cpx,
+                .mode = .absolute,
+                .cycles = 4,
             },
             0xED => .{
                 .type = .sbc,

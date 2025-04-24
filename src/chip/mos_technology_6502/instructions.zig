@@ -685,6 +685,24 @@ pub fn cmp(cpu: anytype, ret: AddressReturn) bool {
     return ret.cycle_request;
 }
 
+/// CPX - Compare X
+/// `X - memory`
+/// Flags:
+///     c = A >= memory
+///     z = A == memory
+///     n = result & 0x80 != 0
+/// 0xE0 - 2 bytes - 2 cycles - #immediate
+/// 0xE4 - 2 bytes - 3 cycles - zeroPage
+/// 0xEC - 3 bytes - 4 cycles - absolute
+pub fn cpx(cpu: anytype, ret: AddressReturn) bool {
+    const value = cpu.read(ret.address);
+    const result = cpu.x -% value;
+    cpu.status.set(.c, cpu.x >= value);
+    cpu.status.set(.z, cpu.x == value);
+    cpu.status.set(.n, result & 0x80 != 0);
+    return ret.cycle_request;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute

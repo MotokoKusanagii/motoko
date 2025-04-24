@@ -1977,6 +1977,50 @@ test "cmp (indirect),y" {
     try std.testing.expect(cpu.status.isSet(.n));
 }
 
+test "cpx #immediate" {
+    var bus = TestBus.setup(&.{ 0xE0, 0x20 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x20;
+
+    cpu.clock();
+
+    try std.testing.expect(cpu.status.isSet(.z)); // X == memory
+    try std.testing.expect(cpu.status.isSet(.c)); // X >= memory
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "cpx zeroPage" {
+    var bus = TestBus.setup(&.{ 0xE4, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x10;
+    bus.data[0x0050] = 0x20;
+
+    cpu.clock();
+
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.c)); // X < memory
+    try std.testing.expect(cpu.status.isSet(.n)); // result is negative
+}
+
+test "cpx absolute" {
+    var bus = TestBus.setup(&.{ 0xEC, 0x30, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x80;
+    bus.data[0x5030] = 0x01;
+
+    cpu.clock();
+
+    try std.testing.expect(cpu.status.isSet(.c)); // X > memory
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n)); // result = 0x7F, bit 7 not set
+}
+
 test "jmp absolute" {
     // JMP $5025
     var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });
