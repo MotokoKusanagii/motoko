@@ -73,6 +73,7 @@ pub const Instruction = struct {
         ror,
         // TODO: Bitwise
         @"and",
+        ora,
         // TODO: Compare
         // TODO: Branch
         // Jump
@@ -162,6 +163,7 @@ pub const Instruction = struct {
             .rol => instructions.rol(cpu, address_return),
             .ror => instructions.ror(cpu, address_return),
             .@"and" => instructions.@"and"(cpu, address_return),
+            .ora => instructions.ora(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -192,6 +194,16 @@ pub const Instruction = struct {
                 .mode = .implied,
                 .cycles = 7,
             },
+            0x01 => .{
+                .type = .ora,
+                .mode = .indirect_x,
+                .cycles = 6,
+            },
+            0x05 => .{
+                .type = .ora,
+                .mode = .zero_page,
+                .cycles = 3,
+            },
             0x06 => .{
                 .type = .asl,
                 .mode = .zero_page,
@@ -202,15 +214,35 @@ pub const Instruction = struct {
                 .mode = .implied,
                 .cycles = 3,
             },
+            0x09 => .{
+                .type = .ora,
+                .mode = .immediate,
+                .cycles = 2,
+            },
             0x0A => .{
                 .type = .asl,
                 .mode = .accumulator,
                 .cycles = 2,
             },
+            0x0D => .{
+                .type = .ora,
+                .mode = .absolute,
+                .cycles = 4,
+            },
             0x0E => .{
                 .type = .asl,
                 .mode = .absolute,
                 .cycles = 6,
+            },
+            0x11 => .{
+                .type = .ora,
+                .mode = .indirect_y,
+                .cycles = 5,
+            },
+            0x15 => .{
+                .type = .ora,
+                .mode = .zero_page_x,
+                .cycles = 4,
             },
             0x16 => .{
                 .type = .asl,
@@ -221,6 +253,16 @@ pub const Instruction = struct {
                 .type = .clc,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0x19 => .{
+                .type = .ora,
+                .mode = .absolute_y,
+                .cycles = 4,
+            },
+            0x1D => .{
+                .type = .ora,
+                .mode = .absolute_x,
+                .cycles = 4,
             },
             0x1E => .{
                 .type = .asl,

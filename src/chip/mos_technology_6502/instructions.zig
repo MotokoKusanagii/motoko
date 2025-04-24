@@ -603,6 +603,27 @@ pub fn @"and"(cpu: anytype, ret: AddressReturn) bool {
     return ret.cycle_request;
 }
 
+/// ORA - Bitwise OR
+/// `A = a | memory`
+/// Flags:
+///     z = result == 0
+///     n = result 0x80 != 0
+/// 0x09 - 2 bytes - 2 cycles - #immediate
+/// 0x05 - 2 bytes - 3 cycles - zeroPage
+/// 0x15 - 2 bytes - 4 cycles - zeroPage,x
+/// 0x0D - 3 bytes - 4 cycles - absolute
+/// 0x1D - 3 bytes - 4 cycles* - absolute,x
+/// 0x19 - 3 bytes - 4 cycles* - absolute,y
+/// 0x01 - 2 bytes - 6 cycles - (indirect,x)
+/// 0x11 - 2 bytes - 5 cycles* - (indirect),y
+pub fn ora(cpu: anytype, ret: AddressReturn) bool {
+    const value = cpu.read(ret.address);
+    cpu.a = cpu.a | value;
+    cpu.status.set(.z, cpu.a == 0);
+    cpu.status.set(.n, cpu.a & 0x80 != 0);
+    return ret.cycle_request;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute

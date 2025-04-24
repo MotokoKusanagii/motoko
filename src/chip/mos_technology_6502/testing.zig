@@ -1541,6 +1541,136 @@ test "and (indirect),y" {
     try std.testing.expect(!cpu.status.isSet(.n));
 }
 
+test "ora #immediate" {
+    var bus = TestBus.setup(&.{ 0x09, 0x0F });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0xF0;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0xFF), cpu.a);
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
+test "ora zeroPage" {
+    var bus = TestBus.setup(&.{ 0x05, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0x00;
+    bus.data[0x0050] = 0x00;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x00), cpu.a);
+    try std.testing.expect(cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "ora zeroPage,x" {
+    var bus = TestBus.setup(&.{ 0x15, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x05;
+    cpu.a = 0x01;
+    bus.data[0x0055] = 0x02;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x03), cpu.a);
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "ora absolute" {
+    var bus = TestBus.setup(&.{ 0x0D, 0x30, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0x00;
+    bus.data[0x5030] = 0x80;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x80), cpu.a);
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
+test "ora absolute,x" {
+    var bus = TestBus.setup(&.{ 0x1D, 0xE0, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x10;
+    cpu.a = 0x80;
+    bus.data[0x50F0] = 0x01;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x81), cpu.a);
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
+test "ora absolute,y" {
+    var bus = TestBus.setup(&.{ 0x19, 0x30, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.y = 0x10;
+    cpu.a = 0x01;
+    bus.data[0x5040] = 0x02;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x03), cpu.a);
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "ora (indirect,x)" {
+    var bus = TestBus.setup(&.{ 0x01, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x10;
+    cpu.a = 0x0F;
+
+    bus.data[0x0060] = 0x00;
+    bus.data[0x0061] = 0x70;
+    bus.data[0x7000] = 0xF0;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0xFF), cpu.a);
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
+test "ora (indirect),y" {
+    var bus = TestBus.setup(&.{ 0x11, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.y = 0x10;
+    cpu.a = 0x00;
+
+    bus.data[0x0050] = 0x00;
+    bus.data[0x0051] = 0x70;
+    bus.data[0x7010] = 0x01;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u8, 0x01), cpu.a);
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
 test "jmp absolute" {
     // JMP $5025
     var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });
