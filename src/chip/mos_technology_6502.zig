@@ -77,6 +77,7 @@ pub const Instruction = struct {
         eor,
         bit,
         // TODO: Compare
+        cmp,
         // TODO: Branch
         // Jump
         jmp,
@@ -168,6 +169,7 @@ pub const Instruction = struct {
             .ora => instructions.ora(cpu, address_return),
             .eor => instructions.eor(cpu, address_return),
             .bit => instructions.bit(cpu, address_return),
+            .cmp => instructions.cmp(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -728,6 +730,16 @@ pub const Instruction = struct {
                 .mode = .absolute_y,
                 .cycles = 4,
             },
+            0xC1 => .{
+                .type = .cmp,
+                .mode = .indirect_x,
+                .cycles = 6,
+            },
+            0xC5 => .{
+                .type = .cmp,
+                .mode = .zero_page,
+                .cycles = 3,
+            },
             0xC6 => .{
                 .type = .dec,
                 .mode = .zero_page,
@@ -738,15 +750,35 @@ pub const Instruction = struct {
                 .mode = .implied,
                 .cycles = 2,
             },
+            0xC9 => .{
+                .type = .cmp,
+                .mode = .immediate,
+                .cycles = 2,
+            },
             0xCA => .{
                 .type = .dex,
                 .mode = .implied,
                 .cycles = 2,
             },
+            0xCD => .{
+                .type = .cmp,
+                .mode = .absolute,
+                .cycles = 4,
+            },
             0xCE => .{
                 .type = .dec,
                 .mode = .absolute,
                 .cycles = 6,
+            },
+            0xD1 => .{
+                .type = .cmp,
+                .mode = .indirect_y,
+                .cycles = 5,
+            },
+            0xD5 => .{
+                .type = .cmp,
+                .mode = .zero_page_x,
+                .cycles = 4,
             },
             0xD6 => .{
                 .type = .dec,
@@ -757,6 +789,16 @@ pub const Instruction = struct {
                 .type = .cld,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0xD9 => .{
+                .type = .cmp,
+                .mode = .absolute_y,
+                .cycles = 4,
+            },
+            0xDD => .{
+                .type = .cmp,
+                .mode = .absolute_x,
+                .cycles = 4,
             },
             0xDE => .{
                 .type = .dec,

@@ -1847,6 +1847,136 @@ test "bit zeroPage with non-zero result" {
     try std.testing.expect(!cpu.status.isSet(.n));
 }
 
+test "cmp #immediate" {
+    var bus = TestBus.setup(&.{ 0xC9, 0x0F });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0x0F;
+
+    cpu.clock();
+
+    try std.testing.expect(cpu.status.isSet(.z)); // A == M
+    try std.testing.expect(cpu.status.isSet(.c)); // A >= M
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "cmp zeroPage" {
+    var bus = TestBus.setup(&.{ 0xC5, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0x10;
+    bus.data[0x0050] = 0x20;
+
+    cpu.clock();
+
+    try std.testing.expect(!cpu.status.isSet(.c)); // A < M
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n)); // Result is negative
+}
+
+test "cmp zeroPage,x" {
+    var bus = TestBus.setup(&.{ 0xD5, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x05;
+    cpu.a = 0x30;
+    bus.data[0x0055] = 0x20;
+
+    cpu.clock();
+
+    try std.testing.expect(cpu.status.isSet(.c)); // A > M
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "cmp absolute" {
+    var bus = TestBus.setup(&.{ 0xCD, 0x30, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0x20;
+    bus.data[0x5030] = 0x20;
+
+    cpu.clock();
+
+    try std.testing.expect(cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.c));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "cmp absolute,x" {
+    var bus = TestBus.setup(&.{ 0xDD, 0xE0, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x10;
+    cpu.a = 0x01;
+    bus.data[0x50F0] = 0x02;
+
+    cpu.clock();
+
+    try std.testing.expect(!cpu.status.isSet(.c));
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
+test "cmp absolute,y" {
+    var bus = TestBus.setup(&.{ 0xD9, 0x30, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.y = 0x10;
+    cpu.a = 0x03;
+    bus.data[0x5040] = 0x01;
+
+    cpu.clock();
+
+    try std.testing.expect(cpu.status.isSet(.c));
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "cmp (indirect,x)" {
+    var bus = TestBus.setup(&.{ 0xC1, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.x = 0x10;
+    cpu.a = 0x01;
+
+    bus.data[0x0060] = 0x00;
+    bus.data[0x0061] = 0x70;
+    bus.data[0x7000] = 0x01;
+
+    cpu.clock();
+
+    try std.testing.expect(cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.c));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
+test "cmp (indirect),y" {
+    var bus = TestBus.setup(&.{ 0xD1, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.y = 0x10;
+    cpu.a = 0xFF;
+
+    bus.data[0x0050] = 0x00;
+    bus.data[0x0051] = 0x70;
+    bus.data[0x7010] = 0x01;
+
+    cpu.clock();
+
+    try std.testing.expect(cpu.status.isSet(.c));
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(cpu.status.isSet(.n));
+}
+
 test "jmp absolute" {
     // JMP $5025
     var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });
