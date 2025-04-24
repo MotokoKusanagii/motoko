@@ -1801,6 +1801,52 @@ test "eor (indirect),y" {
     try std.testing.expect(cpu.status.isSet(.n));
 }
 
+test "bit zeroPage" {
+    var bus = TestBus.setup(&.{ 0x24, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0b0000_1111;
+    bus.data[0x0050] = 0b1100_0000; // bits 7 and 6 set
+
+    cpu.clock();
+
+    try std.testing.expect(cpu.status.isSet(.z)); // A & M = 0x0F & 0xC0 = 0x00 → Z set
+    try std.testing.expect(cpu.status.isSet(.n)); // memory bit 7 set
+    try std.testing.expect(cpu.status.isSet(.v)); // memory bit 6 set
+}
+
+test "bit absolute" {
+    var bus = TestBus.setup(&.{ 0x2C, 0x30, 0x50 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0b1111_0000;
+    bus.data[0x5030] = 0b0100_0000; // bit 6 set, bit 7 clear
+
+    cpu.clock();
+
+    try std.testing.expect(!cpu.status.isSet(.z)); // A & M = 0xF0 & 0x40 = 0x40 ≠ 0
+    try std.testing.expect(!cpu.status.isSet(.n)); // bit 7 clear
+    try std.testing.expect(cpu.status.isSet(.v)); // bit 6 set
+}
+
+test "bit zeroPage with non-zero result" {
+    var bus = TestBus.setup(&.{ 0x24, 0x10 });
+    var cpu = Chip(TestBus).init(&bus);
+    cpu.powerOn();
+
+    cpu.a = 0b0000_0101;
+    bus.data[0x0010] = 0b0000_0101;
+
+    cpu.clock();
+
+    try std.testing.expectEqual(cpu.a & bus.data[0x0010], 0x05);
+    try std.testing.expect(!cpu.status.isSet(.z));
+    try std.testing.expect(!cpu.status.isSet(.v));
+    try std.testing.expect(!cpu.status.isSet(.n));
+}
+
 test "jmp absolute" {
     // JMP $5025
     var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });

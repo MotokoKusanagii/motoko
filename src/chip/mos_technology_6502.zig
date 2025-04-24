@@ -71,10 +71,11 @@ pub const Instruction = struct {
         lsr,
         rol,
         ror,
-        // TODO: Bitwise
+        // Bitwise
         @"and",
         ora,
         eor,
+        bit,
         // TODO: Compare
         // TODO: Branch
         // Jump
@@ -166,6 +167,7 @@ pub const Instruction = struct {
             .@"and" => instructions.@"and"(cpu, address_return),
             .ora => instructions.ora(cpu, address_return),
             .eor => instructions.eor(cpu, address_return),
+            .bit => instructions.bit(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -281,6 +283,11 @@ pub const Instruction = struct {
                 .mode = .indirect_x,
                 .cycles = 6,
             },
+            0x24 => .{
+                .type = .bit,
+                .mode = .zero_page,
+                .cycles = 3,
+            },
             0x25 => .{
                 .type = .@"and",
                 .mode = .zero_page,
@@ -305,6 +312,11 @@ pub const Instruction = struct {
                 .type = .rol,
                 .mode = .accumulator,
                 .cycles = 2,
+            },
+            0x2C => .{
+                .type = .bit,
+                .mode = .absolute,
+                .cycles = 4,
             },
             0x2D => .{
                 .type = .@"and",

@@ -645,6 +645,23 @@ pub fn eor(cpu: anytype, ret: AddressReturn) bool {
     return ret.cycle_request;
 }
 
+/// BIT - BIT Test
+/// `A & memory`
+/// Flags:
+///     z = result == 0
+///     v = memory bit 6
+///     n = memory bit 7
+/// 0x24 - 2 bytes - 3 cycles - zeroPage
+/// 0x2C - 3 bytes - 4 cycles - absolute
+pub fn bit(cpu: anytype, ret: AddressReturn) bool {
+    const value = cpu.read(ret.address);
+    const result = cpu.a & value;
+    cpu.status.set(.z, result == 0);
+    cpu.status.set(.v, value & 0x40 != 0);
+    cpu.status.set(.n, value & 0x80 != 0);
+    return false;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute
