@@ -76,9 +76,10 @@ pub const Instruction = struct {
         ora,
         eor,
         bit,
-        // TODO: Compare
+        // Compare
         cmp,
         cpx,
+        cpy,
         // TODO: Branch
         // Jump
         jmp,
@@ -172,6 +173,7 @@ pub const Instruction = struct {
             .bit => instructions.bit(cpu, address_return),
             .cmp => instructions.cmp(cpu, address_return),
             .cpx => instructions.cpx(cpu, address_return),
+            .cpy => instructions.cpy(cpu, address_return),
             .jmp => instructions.jmp(cpu, address_return),
             .jsr => instructions.jsr(cpu, address_return),
             .rts => instructions.rts(cpu, address_return),
@@ -732,10 +734,20 @@ pub const Instruction = struct {
                 .mode = .absolute_y,
                 .cycles = 4,
             },
+            0xC0 => .{
+                .type = .cpy,
+                .mode = .immediate,
+                .cycles = 2,
+            },
             0xC1 => .{
                 .type = .cmp,
                 .mode = .indirect_x,
                 .cycles = 6,
+            },
+            0xC4 => .{
+                .type = .cpy,
+                .mode = .zero_page,
+                .cycles = 3,
             },
             0xC5 => .{
                 .type = .cmp,
@@ -761,6 +773,11 @@ pub const Instruction = struct {
                 .type = .dex,
                 .mode = .implied,
                 .cycles = 2,
+            },
+            0xCC => .{
+                .type = .cpy,
+                .mode = .absolute,
+                .cycles = 4,
             },
             0xCD => .{
                 .type = .cmp,

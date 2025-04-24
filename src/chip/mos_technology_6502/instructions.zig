@@ -688,8 +688,8 @@ pub fn cmp(cpu: anytype, ret: AddressReturn) bool {
 /// CPX - Compare X
 /// `X - memory`
 /// Flags:
-///     c = A >= memory
-///     z = A == memory
+///     c = X >= memory
+///     z = X == memory
 ///     n = result & 0x80 != 0
 /// 0xE0 - 2 bytes - 2 cycles - #immediate
 /// 0xE4 - 2 bytes - 3 cycles - zeroPage
@@ -699,6 +699,24 @@ pub fn cpx(cpu: anytype, ret: AddressReturn) bool {
     const result = cpu.x -% value;
     cpu.status.set(.c, cpu.x >= value);
     cpu.status.set(.z, cpu.x == value);
+    cpu.status.set(.n, result & 0x80 != 0);
+    return ret.cycle_request;
+}
+
+/// CPY - Compare Y
+/// `Y - memory`
+/// Flags:
+///     c = Y >= memory
+///     z = Y == memory
+///     n = result & 0x80 != 0
+/// 0xC0 - 2 bytes - 2 cycles - #immediate
+/// 0xC4 - 2 bytes - 3 cycles - zeroPage
+/// 0xCC - 3 bytes - 4 cycles - absolute
+pub fn cpy(cpu: anytype, ret: AddressReturn) bool {
+    const value = cpu.read(ret.address);
+    const result = cpu.y -% value;
+    cpu.status.set(.c, cpu.y >= value);
+    cpu.status.set(.z, cpu.y == value);
     cpu.status.set(.n, result & 0x80 != 0);
     return ret.cycle_request;
 }
