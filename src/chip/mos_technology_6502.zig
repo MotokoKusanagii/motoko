@@ -1,17 +1,8 @@
 const std = @import("std");
 const contracts = @import("contracts");
 const instructions = @import("mos_technology_6502/instructions.zig");
+const Bus = @import("mos_technology_6502/Bus.zig");
 const TestBus = @import("mos_technology_6502/testing.zig").TestBus;
-
-const BusInterface = contracts.Interface(struct {
-    pub fn read(_: @This(), addr: u16) u8 {
-        _ = addr;
-    }
-    pub fn write(_: @This(), addr: u16, value: u8) void {
-        _ = addr;
-        _ = value;
-    }
-});
 
 pub const Status = struct {
     data: u8,
@@ -923,88 +914,82 @@ pub const Instruction = struct {
     }
 };
 
-pub fn Chip(Bus: type) type {
-    BusInterface.validate(Bus);
+pub const Chip = struct {
+    // Register
+    status: Status,
+    pc: u16,
+    sp: u8,
+    a: u8,
+    x: u8,
+    y: u8,
 
-    return struct {
-        pub const Self = @This();
+    // Bus
+    bus: Bus,
 
-        // Register
-        status: Status,
-        pc: u16,
-        sp: u8,
-        a: u8,
-        x: u8,
-        y: u8,
+    // Meta
+    cycles_left: u8,
 
-        // Bus
-        bus: *Bus,
+    pub fn init(bus: Bus) Chip {
+        return .{
+            .status = .init,
+            .pc = 0x0000,
+            .sp = 0x00,
+            .a = 0x00,
+            .x = 0x00,
+            .y = 0x00,
+            .bus = bus,
+            .cycles_left = 0x00,
+        };
+    }
 
-        // Meta
-        cycles_left: u8,
+    pub fn powerOn(self: *Chip) void {
+        self.a = 0;
+        self.x = 0;
+        self.y = 0;
 
-        pub fn init(bus: *Bus) Self {
-            return .{
-                .status = .init,
-                .pc = 0x0000,
-                .sp = 0x00,
-                .a = 0x00,
-                .x = 0x00,
-                .y = 0x00,
-                .bus = bus,
-                .cycles_left = 0x00,
-            };
+        const pc_lo: u16 = self.read(0xFFFC);
+        const pc_hi: u16 = self.read(0xFFFD);
+        self.pc = (pc_hi << 8) | pc_lo;
+
+        self.sp = 0xFD;
+
+        self.status = .init;
+        self.status.set(.i, true);
+    }
+
+    pub fn reset(self: *Chip) void {
+        const pc_lo: u16 = self.read(0xFFFC);
+        const pc_hi: u16 = self.read(0xFFFD);
+        self.pc = (pc_hi << 8) | pc_lo;
+        self.sp = 0xFD;
+        self.status.set(.i, true);
+
+        self.cycles_left = 8;
+    }
+
+    pub fn clock(self: *Chip) void {
+        if (self.cycles_left == 0) {
+            const opcode = self.read(self.pc);
+            self.pc += 1;
+
+            const decode = Instruction.decode(opcode);
+
+            self.cycles_left = decode.cycles;
+
+            self.cycles_left += if (decode.run(Chip, self)) 1 else 0;
         }
 
-        pub fn powerOn(self: *Self) void {
-            self.a = 0;
-            self.x = 0;
-            self.y = 0;
+        self.cycles_left -= 1;
+    }
 
-            const pc_lo: u16 = self.read(0xFFFC);
-            const pc_hi: u16 = self.read(0xFFFD);
-            self.pc = (pc_hi << 8) | pc_lo;
+    pub fn write(self: *Chip, addr: u16, value: u8) void {
+        self.bus.write(addr, value);
+    }
 
-            self.sp = 0xFD;
-
-            self.status = .init;
-            self.status.set(.i, true);
-        }
-
-        pub fn reset(self: *Self) void {
-            const pc_lo: u16 = self.read(0xFFFC);
-            const pc_hi: u16 = self.read(0xFFFD);
-            self.pc = (pc_hi << 8) | pc_lo;
-            self.sp = 0xFD;
-            self.status.set(.i, true);
-
-            self.cycles_left = 8;
-        }
-
-        pub fn clock(self: *Self) void {
-            if (self.cycles_left == 0) {
-                const opcode = self.read(self.pc);
-                self.pc += 1;
-
-                const decode = Instruction.decode(opcode);
-
-                self.cycles_left = decode.cycles;
-
-                self.cycles_left += if (decode.run(Self, self)) 1 else 0;
-            }
-
-            self.cycles_left -= 1;
-        }
-
-        pub fn write(self: *Self, addr: u16, value: u8) void {
-            self.bus.write(addr, value);
-        }
-
-        pub fn read(self: Self, addr: u16) u8 {
-            return self.bus.read(addr);
-        }
-    };
-}
+    pub fn read(self: Chip, addr: u16) u8 {
+        return self.bus.read(addr);
+    }
+};
 
 test "cpu read/write" {
     var bus = TestBus{
@@ -1012,7 +997,7 @@ test "cpu read/write" {
     };
     @memset(&bus.data, 0);
 
-    var cpu = Chip(TestBus).init(&bus);
+    var cpu = Chip.init(bus.bus());
     cpu.write(0x00FF, 0x17);
     cpu.write(0x5978, 0x69);
 
@@ -1026,7 +1011,7 @@ test "cpu register" {
     };
     @memset(&bus.data, 0);
 
-    var cpu = Chip(TestBus).init(&bus);
+    var cpu = Chip.init(bus.bus());
     cpu.status.set(.d, true);
     cpu.status.set(.v, true);
 
