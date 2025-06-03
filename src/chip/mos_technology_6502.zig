@@ -1,5 +1,4 @@
 const std = @import("std");
-const contracts = @import("contracts");
 const instructions = @import("mos_technology_6502/instructions.zig");
 const Bus = @import("mos_technology_6502/Bus.zig");
 const TestBus = @import("mos_technology_6502/testing.zig").TestBus;
