@@ -118,7 +118,7 @@ pub const Instruction = struct {
     mode: Mode = .unknown,
     cycles: u8,
 
-    pub fn run(self: Instruction, comptime CpuT: type, cpu: *CpuT) bool {
+    pub fn run(self: Instruction, cpu: *Chip) bool {
         const address_return = switch (self.mode) {
             .accumulator => instructions.accumulator(cpu),
             .implied => instructions.implied(cpu),
@@ -976,7 +976,7 @@ pub const Chip = struct {
 
             self.cycles_left = decode.cycles;
 
-            self.cycles_left += if (decode.run(Chip, self)) 1 else 0;
+            self.cycles_left += if (decode.run(self)) 1 else 0;
         }
 
         self.cycles_left -= 1;
