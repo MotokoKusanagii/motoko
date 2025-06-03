@@ -2122,8 +2122,8 @@ test "jsr absolute" {
     cpu.clock();
 
     try std.testing.expectEqual(0x2548, cpu.pc);
-    try std.testing.expectEqual(0x02, bus.data[micro.getSpAbs(cpu) + 1]);
-    try std.testing.expectEqual(0xF0, bus.data[micro.getSpAbs(cpu) + 2]);
+    try std.testing.expectEqual(0x02, bus.data[micro.getSpAbs(&cpu) + 1]);
+    try std.testing.expectEqual(0xF0, bus.data[micro.getSpAbs(&cpu) + 2]);
 }
 
 test "rts implied" {
@@ -2133,8 +2133,8 @@ test "rts implied" {
 
     cpu.sp = 0x50;
     // 0x45BA
-    bus.data[micro.getSpAbs(cpu) + 1] = 0xBA;
-    bus.data[micro.getSpAbs(cpu) + 2] = 0x45;
+    bus.data[micro.getSpAbs(&cpu) + 1] = 0xBA;
+    bus.data[micro.getSpAbs(&cpu) + 2] = 0x45;
 
     cpu.clock();
 
@@ -2158,9 +2158,9 @@ test "brk implied" {
     cpu.clock();
 
     try std.testing.expectEqual(0xCCBB, cpu.pc);
-    try std.testing.expectEqual(0xD4, bus.data[micro.getSpAbs(cpu) + 1]);
-    try std.testing.expectEqual(0x02, bus.data[micro.getSpAbs(cpu) + 2]);
-    try std.testing.expectEqual(0xF0, bus.data[micro.getSpAbs(cpu) + 3]);
+    try std.testing.expectEqual(0xD4, bus.data[micro.getSpAbs(&cpu) + 1]);
+    try std.testing.expectEqual(0x02, bus.data[micro.getSpAbs(&cpu) + 2]);
+    try std.testing.expectEqual(0xF0, bus.data[micro.getSpAbs(&cpu) + 3]);
     try std.testing.expectEqual(0xCCBB, cpu.pc);
 }
 
@@ -2171,9 +2171,9 @@ test "rti implied" {
 
     // Prepare data
     cpu.sp = 0x10;
-    bus.data[micro.getSpAbs(cpu) + 1] = 0xD4; // Stack 0b11010100
-    bus.data[micro.getSpAbs(cpu) + 2] = 0xBB;
-    bus.data[micro.getSpAbs(cpu) + 3] = 0xCC; // 0xCCBB
+    bus.data[micro.getSpAbs(&cpu) + 1] = 0xD4; // Stack 0b11010100
+    bus.data[micro.getSpAbs(&cpu) + 2] = 0xBB;
+    bus.data[micro.getSpAbs(&cpu) + 3] = 0xCC; // 0xCCBB
 
     cpu.clock();
 
@@ -2192,7 +2192,7 @@ test "pha implied" {
 
     cpu.clock();
 
-    try std.testing.expectEqual(0xFA, bus.data[micro.getSpAbs(cpu) + 1]);
+    try std.testing.expectEqual(0xFA, bus.data[micro.getSpAbs(&cpu) + 1]);
 }
 
 test "pla implied" {
@@ -2248,7 +2248,7 @@ test "php implied" {
 
     cpu.clock();
 
-    try std.testing.expectEqual(0b11111101, bus.data[micro.getSpAbs(cpu) + 1]);
+    try std.testing.expectEqual(0b11111101, bus.data[micro.getSpAbs(&cpu) + 1]);
 }
 
 test "plp implied" {

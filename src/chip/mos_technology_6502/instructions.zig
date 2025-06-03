@@ -10,23 +10,23 @@ pub const AddressReturn = struct {
 };
 
 pub const micro = struct {
-    pub fn readSp(cpu: anytype) u8 {
+    pub fn readSp(cpu: *Chip) u8 {
         return cpu.read(@as(u16, cpu.sp) + 0x0100);
     }
-    pub fn writeSp(cpu: anytype, data: u8) void {
+    pub fn writeSp(cpu: *Chip, data: u8) void {
         cpu.write(@as(u16, cpu.sp) + 0x0100, data);
     }
-    pub fn getSpAbs(cpu: anytype) u16 {
+    pub fn getSpAbs(cpu: *Chip) u16 {
         return @as(u16, cpu.sp) + 0x0100;
     }
-    pub fn fetch16(cpu: anytype, address: u16) u16 {
+    pub fn fetch16(cpu: *Chip, address: u16) u16 {
         const lo: u16 = cpu.read(address);
         const hi: u16 = cpu.read(address +% 1);
         return (hi << 8) | lo;
     }
 };
 
-pub fn accumulator(_: anytype) AddressReturn {
+pub fn accumulator(_: *Chip) AddressReturn {
     return .{
         .cycle_request = false,
         .address = 0x00,
@@ -34,14 +34,14 @@ pub fn accumulator(_: anytype) AddressReturn {
     };
 }
 
-pub fn implied(_: anytype) AddressReturn {
+pub fn implied(_: *Chip) AddressReturn {
     return .{
         .cycle_request = false,
         .address = 0x00,
     };
 }
 
-pub fn immediate(cpu: anytype) AddressReturn {
+pub fn immediate(cpu: *Chip) AddressReturn {
     const address = cpu.pc;
     cpu.pc += 1;
     return .{
@@ -50,7 +50,7 @@ pub fn immediate(cpu: anytype) AddressReturn {
     };
 }
 
-pub fn zeroPage(cpu: anytype) AddressReturn {
+pub fn zeroPage(cpu: *Chip) AddressReturn {
     const address: u16 = cpu.read(cpu.pc);
     cpu.pc += 1;
     return .{
@@ -59,7 +59,7 @@ pub fn zeroPage(cpu: anytype) AddressReturn {
     };
 }
 
-pub fn zeroPageX(cpu: anytype) AddressReturn {
+pub fn zeroPageX(cpu: *Chip) AddressReturn {
     var address: u8 = cpu.read(cpu.pc);
     address +%= cpu.x;
     cpu.pc += 1;
@@ -69,7 +69,7 @@ pub fn zeroPageX(cpu: anytype) AddressReturn {
     };
 }
 
-pub fn zeroPageY(cpu: anytype) AddressReturn {
+pub fn zeroPageY(cpu: *Chip) AddressReturn {
     var address: u8 = cpu.read(cpu.pc);
     address +%= cpu.y;
     cpu.pc += 1;
@@ -79,7 +79,7 @@ pub fn zeroPageY(cpu: anytype) AddressReturn {
     };
 }
 
-pub fn absolute(cpu: anytype) AddressReturn {
+pub fn absolute(cpu: *Chip) AddressReturn {
     const lo: u16 = cpu.read(cpu.pc);
     cpu.pc += 1;
     const hi: u16 = cpu.read(cpu.pc);
@@ -90,7 +90,7 @@ pub fn absolute(cpu: anytype) AddressReturn {
     };
 }
 
-pub fn absoluteX(cpu: anytype) AddressReturn {
+pub fn absoluteX(cpu: *Chip) AddressReturn {
     const lo: u16 = cpu.read(cpu.pc);
     cpu.pc += 1;
     const hi: u16 = cpu.read(cpu.pc);
@@ -105,7 +105,7 @@ pub fn absoluteX(cpu: anytype) AddressReturn {
     };
 }
 
-pub fn absoluteY(cpu: anytype) AddressReturn {
+pub fn absoluteY(cpu: *Chip) AddressReturn {
     const lo: u16 = cpu.read(cpu.pc);
     cpu.pc += 1;
     const hi: u16 = cpu.read(cpu.pc);
@@ -120,7 +120,7 @@ pub fn absoluteY(cpu: anytype) AddressReturn {
     };
 }
 
-pub fn indirect(cpu: anytype) AddressReturn {
+pub fn indirect(cpu: *Chip) AddressReturn {
     const ptr_lo: u16 = cpu.read(cpu.pc);
     cpu.pc += 1;
     const ptr_hi: u16 = cpu.read(cpu.pc);
@@ -137,7 +137,7 @@ pub fn indirect(cpu: anytype) AddressReturn {
     };
 }
 
-pub fn indirectX(cpu: anytype) AddressReturn {
+pub fn indirectX(cpu: *Chip) AddressReturn {
     var ptr: u8 = cpu.read(cpu.pc);
     cpu.pc += 1;
 
@@ -151,7 +151,7 @@ pub fn indirectX(cpu: anytype) AddressReturn {
     };
 }
 
-pub fn indirectY(cpu: anytype) AddressReturn {
+pub fn indirectY(cpu: *Chip) AddressReturn {
     const ptr: u8 = cpu.read(cpu.pc);
     cpu.pc += 1;
 
@@ -168,7 +168,7 @@ pub fn indirectY(cpu: anytype) AddressReturn {
     };
 }
 
-pub fn address_unknown(_: anytype) AddressReturn {
+pub fn address_unknown(_: *Chip) AddressReturn {
     @panic("unknown address mode!");
 }
 
@@ -185,7 +185,7 @@ pub fn address_unknown(_: anytype) AddressReturn {
 /// 0xB9 - 3 bytes - 4 cycles* - absolute,y
 /// 0xA1 - 2 bytes - 6 cycles - (indirect,x)
 /// 0xB1 - 2 bytes - 5 cycles* - (indirect),y
-pub fn lda(cpu: anytype, ret: AddressReturn) bool {
+pub fn lda(cpu: *Chip, ret: AddressReturn) bool {
     cpu.a = cpu.read(ret.address);
     cpu.status.set(.z, cpu.a == 0x00);
     cpu.status.set(.n, cpu.a & 0x80 != 0);
@@ -201,7 +201,7 @@ pub fn lda(cpu: anytype, ret: AddressReturn) bool {
 /// 0x99 - 3 bytes - 5 cycles - absolute,y
 /// 0x81 - 2 bytes - 6 cycles - (indirect,x)
 /// 0x91 - 2 bytes - 6 cycles - (indirect),y
-pub fn sta(cpu: anytype, ret: AddressReturn) bool {
+pub fn sta(cpu: *Chip, ret: AddressReturn) bool {
     cpu.write(ret.address, cpu.a);
     return false;
 }
@@ -216,7 +216,7 @@ pub fn sta(cpu: anytype, ret: AddressReturn) bool {
 /// 0xB6 - 2 bytes - 4 cycles - zeroPage,y
 /// 0xAE - 3 bytes - 4 cycles - absolute
 /// 0xBE - 3 bytes - 4 cycles* - absolute,y
-pub fn ldx(cpu: anytype, ret: AddressReturn) bool {
+pub fn ldx(cpu: *Chip, ret: AddressReturn) bool {
     cpu.x = cpu.read(ret.address);
     cpu.status.set(.z, cpu.x == 0x00);
     cpu.status.set(.n, cpu.x & 0x80 != 0);
@@ -228,7 +228,7 @@ pub fn ldx(cpu: anytype, ret: AddressReturn) bool {
 /// 0x86 - 2 bytes - 3 cycles - zeroPage
 /// 0x96 - 2 bytes - 4 cycles - zeroPage,y
 /// 0x8E - 3 bytes - 4 cycles - absolute
-pub fn stx(cpu: anytype, ret: AddressReturn) bool {
+pub fn stx(cpu: *Chip, ret: AddressReturn) bool {
     cpu.write(ret.address, cpu.x);
     return false;
 }
@@ -243,7 +243,7 @@ pub fn stx(cpu: anytype, ret: AddressReturn) bool {
 /// 0xB4 - 2 bytes - 4 cycles - zeroPage,x
 /// 0xAC - 3 bytes - 4 cycles - absolute
 /// 0xBC - 3 bytes - 4 cycles - absolute,x
-pub fn ldy(cpu: anytype, ret: AddressReturn) bool {
+pub fn ldy(cpu: *Chip, ret: AddressReturn) bool {
     cpu.y = cpu.read(ret.address);
     cpu.status.set(.z, cpu.x == 0x00);
     cpu.status.set(.n, cpu.x & 0x80 != 0);
@@ -255,7 +255,7 @@ pub fn ldy(cpu: anytype, ret: AddressReturn) bool {
 /// 0x84 - 2 bytes - 3 cycles - zeroPage
 /// 0x94 - 2 bytes - 4 cycles - zeroPage,x
 /// 0x8C - 3 bytes - 4 cycles - absolute
-pub fn sty(cpu: anytype, ret: AddressReturn) bool {
+pub fn sty(cpu: *Chip, ret: AddressReturn) bool {
     cpu.write(ret.address, cpu.y);
     return false;
 }
@@ -266,7 +266,7 @@ pub fn sty(cpu: anytype, ret: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result & 0x80 != 0
 /// 0xAA - 1 byte - 2 cycles - implied
-pub fn tax(cpu: anytype, _: AddressReturn) bool {
+pub fn tax(cpu: *Chip, _: AddressReturn) bool {
     cpu.x = cpu.a;
     cpu.status.set(.z, cpu.x == 0x00);
     cpu.status.set(.n, cpu.x & 0x80 != 0);
@@ -279,7 +279,7 @@ pub fn tax(cpu: anytype, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result & 0x80 != 0
 /// 0x8A - 1 byte - 2 cycles - implied
-pub fn txa(cpu: anytype, _: AddressReturn) bool {
+pub fn txa(cpu: *Chip, _: AddressReturn) bool {
     cpu.a = cpu.x;
     cpu.status.set(.z, cpu.a == 0x00);
     cpu.status.set(.n, cpu.a & 0x80 != 0);
@@ -292,7 +292,7 @@ pub fn txa(cpu: anytype, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result & 0x80 != 0
 /// 0xA8 - 1 byte - 2 cycles - implied
-pub fn tay(cpu: anytype, _: AddressReturn) bool {
+pub fn tay(cpu: *Chip, _: AddressReturn) bool {
     cpu.y = cpu.a;
     cpu.status.set(.z, cpu.y == 0x00);
     cpu.status.set(.n, cpu.y & 0x80 != 0);
@@ -305,7 +305,7 @@ pub fn tay(cpu: anytype, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result & 0x80 != 0
 /// 0x98 - 1 byte - 2 cycles - implied
-pub fn tya(cpu: anytype, _: AddressReturn) bool {
+pub fn tya(cpu: *Chip, _: AddressReturn) bool {
     cpu.a = cpu.y;
     cpu.status.set(.z, cpu.a == 0x00);
     cpu.status.set(.n, cpu.a & 0x80 != 0);
@@ -327,7 +327,7 @@ pub fn tya(cpu: anytype, _: AddressReturn) bool {
 /// 0x79 - 3 bytes - 4 cycles* - absolute,y
 /// 0x61 - 2 bytes - 6 cycles - (indirect,x)
 /// 0x71 - 2 bytes - 5 cycles* - (indirect),y
-pub fn adc(cpu: anytype, ret: AddressReturn) bool {
+pub fn adc(cpu: *Chip, ret: AddressReturn) bool {
     const m: u16 = cpu.read(ret.address);
     const c: u16 = @intFromBool(cpu.status.isSet(.c));
     const a: u16 = cpu.a;
@@ -358,7 +358,7 @@ pub fn adc(cpu: anytype, ret: AddressReturn) bool {
 /// 0xF9 - 3 bytes - 4 cycles* - absolute,y
 /// 0xE1 - 2 bytes - 6 cycles - (indirect,x)
 /// 0xF1 - 2 bytes - 5 cycles* - (indirect),y
-pub fn sbc(cpu: anytype, ret: AddressReturn) bool {
+pub fn sbc(cpu: *Chip, ret: AddressReturn) bool {
     const m: u16 = cpu.read(ret.address);
     const c: u16 = @intFromBool(cpu.status.isSet(.c));
     const a: u16 = cpu.a;
@@ -383,7 +383,7 @@ pub fn sbc(cpu: anytype, ret: AddressReturn) bool {
 /// 0xF6 - 2 bytes - 6 cycles - zeroPage,x
 /// 0xEE - 3 bytes - 6 cycles - absolute
 /// 0xFE - 3 bytes - 7 cycles - absolute,x
-pub fn inc(cpu: anytype, ret: AddressReturn) bool {
+pub fn inc(cpu: *Chip, ret: AddressReturn) bool {
     const memory = cpu.read(ret.address);
     const result = memory +% 1;
     cpu.write(ret.address, result);
@@ -401,7 +401,7 @@ pub fn inc(cpu: anytype, ret: AddressReturn) bool {
 /// 0xD6 - 2 bytes - 6 cycles - zeroPage,x
 /// 0xCE - 3 bytes - 6 cycles - absolute
 /// 0xDE - 3 bytes - 7 cycles - absolute,x
-pub fn dec(cpu: anytype, ret: AddressReturn) bool {
+pub fn dec(cpu: *Chip, ret: AddressReturn) bool {
     const memory = cpu.read(ret.address);
     const result = memory -% 1;
     cpu.write(ret.address, result);
@@ -415,7 +415,7 @@ pub fn dec(cpu: anytype, ret: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result 0x80 != 0
 /// 0xE8 - 1 byte - 2 cycles - implied
-pub fn inx(cpu: anytype, _: AddressReturn) bool {
+pub fn inx(cpu: *Chip, _: AddressReturn) bool {
     cpu.x +%= 1;
     cpu.status.set(.z, cpu.x == 0x00);
     cpu.status.set(.n, cpu.x & 0x80 != 0);
@@ -427,7 +427,7 @@ pub fn inx(cpu: anytype, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result 0x80 != 0
 /// 0xCA - 1 byte - 2 cycles - implied
-pub fn dex(cpu: anytype, _: AddressReturn) bool {
+pub fn dex(cpu: *Chip, _: AddressReturn) bool {
     cpu.x -%= 1;
     cpu.status.set(.z, cpu.x == 0x00);
     cpu.status.set(.n, cpu.x & 0x80 != 0);
@@ -439,7 +439,7 @@ pub fn dex(cpu: anytype, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result 0x80 != 0
 /// 0xC8 - 1 byte - 2 cycles - implied
-pub fn iny(cpu: anytype, _: AddressReturn) bool {
+pub fn iny(cpu: *Chip, _: AddressReturn) bool {
     cpu.y +%= 1;
     cpu.status.set(.z, cpu.y == 0x00);
     cpu.status.set(.n, cpu.y & 0x80 != 0);
@@ -451,7 +451,7 @@ pub fn iny(cpu: anytype, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result 0x80 != 0
 /// 0x88 - 1 byte - 2 cycles - implied
-pub fn dey(cpu: anytype, _: AddressReturn) bool {
+pub fn dey(cpu: *Chip, _: AddressReturn) bool {
     cpu.y -%= 1;
     cpu.status.set(.z, cpu.y == 0x00);
     cpu.status.set(.n, cpu.y & 0x80 != 0);
@@ -469,7 +469,7 @@ pub fn dey(cpu: anytype, _: AddressReturn) bool {
 /// 0x16 - 2 bytes - 6 cycles - zeroPage,x
 /// 0x0E - 3 bytes - 6 cycles - absolute
 /// 0x1E - 3 bytes - 7 cycles - absolute,x
-pub fn asl(cpu: anytype, ret: AddressReturn) bool {
+pub fn asl(cpu: *Chip, ret: AddressReturn) bool {
     if (ret.accumulator) {
         const value: u16 = cpu.a;
         const result = value << 1;
@@ -499,7 +499,7 @@ pub fn asl(cpu: anytype, ret: AddressReturn) bool {
 /// 0x56 - 2 bytes - 6 cycles - zeroPage,x
 /// 0x4E - 3 bytes - 6 cycles - absolute
 /// 0x5E - 3 bytes - 7 cycles - absolute,x
-pub fn lsr(cpu: anytype, ret: AddressReturn) bool {
+pub fn lsr(cpu: *Chip, ret: AddressReturn) bool {
     if (ret.accumulator) {
         const value: u16 = cpu.a;
         const result = value >> 1;
@@ -529,7 +529,7 @@ pub fn lsr(cpu: anytype, ret: AddressReturn) bool {
 /// 0x36 - 2 bytes - 6 cycles - zeroPage,x
 /// 0x2E - 3 bytes - 6 cycles - absolute
 /// 0x3E - 3 bytes - 7 cycles - absolute,x
-pub fn rol(cpu: anytype, ret: AddressReturn) bool {
+pub fn rol(cpu: *Chip, ret: AddressReturn) bool {
     if (ret.accumulator) {
         const c: u16 = @intFromBool(cpu.status.isSet(.c));
         const value: u16 = cpu.a;
@@ -561,7 +561,7 @@ pub fn rol(cpu: anytype, ret: AddressReturn) bool {
 /// 0x76 - 2 bytes - 6 cycles - zeroPage,x
 /// 0x6E - 3 bytes - 6 cycles - absolute
 /// 0x7E - 3 bytes - 7 cycles - absolute,x
-pub fn ror(cpu: anytype, ret: AddressReturn) bool {
+pub fn ror(cpu: *Chip, ret: AddressReturn) bool {
     if (ret.accumulator) {
         const c: u16 = @intFromBool(cpu.status.isSet(.c));
         const value: u16 = cpu.a;
@@ -595,7 +595,7 @@ pub fn ror(cpu: anytype, ret: AddressReturn) bool {
 /// 0x39 - 3 bytes - 4 cycles* - absolute,y
 /// 0x21 - 2 bytes - 6 cycles - (indirect,x)
 /// 0x31 - 2 bytes - 5 cycles* - (indirect),y
-pub fn @"and"(cpu: anytype, ret: AddressReturn) bool {
+pub fn @"and"(cpu: *Chip, ret: AddressReturn) bool {
     const value = cpu.read(ret.address);
     cpu.a = cpu.a & value;
     cpu.status.set(.z, cpu.a == 0);
@@ -616,7 +616,7 @@ pub fn @"and"(cpu: anytype, ret: AddressReturn) bool {
 /// 0x19 - 3 bytes - 4 cycles* - absolute,y
 /// 0x01 - 2 bytes - 6 cycles - (indirect,x)
 /// 0x11 - 2 bytes - 5 cycles* - (indirect),y
-pub fn ora(cpu: anytype, ret: AddressReturn) bool {
+pub fn ora(cpu: *Chip, ret: AddressReturn) bool {
     const value = cpu.read(ret.address);
     cpu.a = cpu.a | value;
     cpu.status.set(.z, cpu.a == 0);
@@ -637,7 +637,7 @@ pub fn ora(cpu: anytype, ret: AddressReturn) bool {
 /// 0x59 - 3 bytes - 4 cycles* - absolute,y
 /// 0x41 - 2 bytes - 6 cycles - (indirect,x)
 /// 0x51 - 2 bytes - 5 cycles* - (indirect),y
-pub fn eor(cpu: anytype, ret: AddressReturn) bool {
+pub fn eor(cpu: *Chip, ret: AddressReturn) bool {
     const value = cpu.read(ret.address);
     cpu.a = cpu.a ^ value;
     cpu.status.set(.z, cpu.a == 0);
@@ -653,7 +653,7 @@ pub fn eor(cpu: anytype, ret: AddressReturn) bool {
 ///     n = memory bit 7
 /// 0x24 - 2 bytes - 3 cycles - zeroPage
 /// 0x2C - 3 bytes - 4 cycles - absolute
-pub fn bit(cpu: anytype, ret: AddressReturn) bool {
+pub fn bit(cpu: *Chip, ret: AddressReturn) bool {
     const value = cpu.read(ret.address);
     const result = cpu.a & value;
     cpu.status.set(.z, result == 0);
@@ -676,7 +676,7 @@ pub fn bit(cpu: anytype, ret: AddressReturn) bool {
 /// 0xD9 - 3 bytes - 4 cycles* - absolute,y
 /// 0xC1 - 2 bytes - 6 cycles - (indirect,x)
 /// 0xD1 - 2 bytes - 5 cycles* - (indirect),y
-pub fn cmp(cpu: anytype, ret: AddressReturn) bool {
+pub fn cmp(cpu: *Chip, ret: AddressReturn) bool {
     const value = cpu.read(ret.address);
     const result = cpu.a -% value;
     cpu.status.set(.c, cpu.a >= value);
@@ -694,7 +694,7 @@ pub fn cmp(cpu: anytype, ret: AddressReturn) bool {
 /// 0xE0 - 2 bytes - 2 cycles - #immediate
 /// 0xE4 - 2 bytes - 3 cycles - zeroPage
 /// 0xEC - 3 bytes - 4 cycles - absolute
-pub fn cpx(cpu: anytype, ret: AddressReturn) bool {
+pub fn cpx(cpu: *Chip, ret: AddressReturn) bool {
     const value = cpu.read(ret.address);
     const result = cpu.x -% value;
     cpu.status.set(.c, cpu.x >= value);
@@ -712,7 +712,7 @@ pub fn cpx(cpu: anytype, ret: AddressReturn) bool {
 /// 0xC0 - 2 bytes - 2 cycles - #immediate
 /// 0xC4 - 2 bytes - 3 cycles - zeroPage
 /// 0xCC - 3 bytes - 4 cycles - absolute
-pub fn cpy(cpu: anytype, ret: AddressReturn) bool {
+pub fn cpy(cpu: *Chip, ret: AddressReturn) bool {
     const value = cpu.read(ret.address);
     const result = cpu.y -% value;
     cpu.status.set(.c, cpu.y >= value);
@@ -725,7 +725,7 @@ pub fn cpy(cpu: anytype, ret: AddressReturn) bool {
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute
 /// 0x6C - 3 bytes - 5 cycles - (indirect)
-pub fn jmp(cpu: anytype, ret: AddressReturn) bool {
+pub fn jmp(cpu: *Chip, ret: AddressReturn) bool {
     cpu.pc = ret.address;
     return false;
 }
@@ -734,7 +734,7 @@ pub fn jmp(cpu: anytype, ret: AddressReturn) bool {
 /// `push PC + 2 to stack`
 /// `PC = memory`
 /// 0x20 - 3 bytes - 6 cycles - absolute
-pub fn jsr(cpu: anytype, ret: AddressReturn) bool {
+pub fn jsr(cpu: *Chip, ret: AddressReturn) bool {
     cpu.pc -= 1;
 
     micro.writeSp(cpu, @truncate(cpu.pc >> 8));
@@ -750,7 +750,7 @@ pub fn jsr(cpu: anytype, ret: AddressReturn) bool {
 /// `pull PC from stack`
 /// `PC = PC + 1`
 /// 0x60 - 1 byte - 6 cycles - implied
-pub fn rts(cpu: anytype, _: AddressReturn) bool {
+pub fn rts(cpu: *Chip, _: AddressReturn) bool {
     cpu.sp +%= 1;
     const lo: u16 = micro.readSp(cpu);
     cpu.sp +%= 1;
@@ -769,7 +769,7 @@ pub fn rts(cpu: anytype, _: AddressReturn) bool {
 /// Flags:
 ///     i = 1
 ///     b = pushed as 1
-pub fn brk(cpu: anytype, _: AddressReturn) bool {
+pub fn brk(cpu: *Chip, _: AddressReturn) bool {
     cpu.pc += 1;
 
     cpu.status.set(.i, true);
@@ -801,7 +801,7 @@ pub fn brk(cpu: anytype, _: AddressReturn) bool {
 ///     d = result & 0x08
 ///     v = result & 0x40
 ///     n = result & 0x80
-pub fn rti(cpu: anytype, _: AddressReturn) bool {
+pub fn rti(cpu: *Chip, _: AddressReturn) bool {
     cpu.sp += 1;
     cpu.status.data = micro.readSp(cpu);
     cpu.status.set(.b, false);
@@ -820,7 +820,7 @@ pub fn rti(cpu: anytype, _: AddressReturn) bool {
 /// `($0100 + SP) = A`
 /// `SP = SP - 1`
 /// 0x48 - 1 byte - 3 cycles - implied
-pub fn pha(cpu: anytype, _: AddressReturn) bool {
+pub fn pha(cpu: *Chip, _: AddressReturn) bool {
     micro.writeSp(cpu, cpu.a);
     cpu.sp -%= 1;
     return false;
@@ -833,7 +833,7 @@ pub fn pha(cpu: anytype, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result & 0x80 != 0
 /// 0x68 - 1 byte - 4 cycles - implied
-pub fn pla(cpu: anytype, _: AddressReturn) bool {
+pub fn pla(cpu: *Chip, _: AddressReturn) bool {
     cpu.sp +%= 1;
     cpu.a = micro.readSp(cpu);
     cpu.status.set(.z, cpu.a == 0);
@@ -845,7 +845,7 @@ pub fn pla(cpu: anytype, _: AddressReturn) bool {
 /// `($0100 + SP) = NV11DIZC`
 /// `SP = SP - 1`
 /// 0x08 - 1 byte - 3 cycles - implied
-pub fn php(cpu: anytype, _: AddressReturn) bool {
+pub fn php(cpu: *Chip, _: AddressReturn) bool {
     var local: Status = cpu.status;
     local.set(.b, true);
     local.set(.u, true);
@@ -865,7 +865,7 @@ pub fn php(cpu: anytype, _: AddressReturn) bool {
 ///     v = result & 0x40 != 0
 ///     n = result & 0x80 != 0
 /// 0x28 - 1 byte - 4 cycles - implied
-pub fn plp(cpu: anytype, _: AddressReturn) bool {
+pub fn plp(cpu: *Chip, _: AddressReturn) bool {
     cpu.sp +%= 1;
     const result = micro.readSp(cpu);
     cpu.status.set(.c, result & 0x01 != 0);
@@ -880,7 +880,7 @@ pub fn plp(cpu: anytype, _: AddressReturn) bool {
 /// TXS - Transfer X to Stack Pointer
 /// `SP = x`
 /// 0x9A - 1 byte - 2 cycles - implied
-pub fn txs(cpu: anytype, _: AddressReturn) bool {
+pub fn txs(cpu: *Chip, _: AddressReturn) bool {
     cpu.sp = cpu.x;
     return false;
 }
@@ -891,7 +891,7 @@ pub fn txs(cpu: anytype, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result & 0x80 != 0
 /// 0xBA - 1 byte - 2 cycles - implied
-pub fn tsx(cpu: anytype, _: AddressReturn) bool {
+pub fn tsx(cpu: *Chip, _: AddressReturn) bool {
     cpu.x = cpu.sp;
     cpu.status.set(.z, cpu.x == 0);
     cpu.status.set(.n, cpu.x & 0x80 != 0);
@@ -901,7 +901,7 @@ pub fn tsx(cpu: anytype, _: AddressReturn) bool {
 /// CLC - Clear Carry
 /// `C = 0`
 /// 0x18 - 1 byte - 2 cycles - implied
-pub fn clc(cpu: anytype, _: AddressReturn) bool {
+pub fn clc(cpu: *Chip, _: AddressReturn) bool {
     cpu.status.set(.c, false);
     return false;
 }
@@ -909,7 +909,7 @@ pub fn clc(cpu: anytype, _: AddressReturn) bool {
 /// SEC - Set Carry
 /// `C = 1`
 /// 0x38 - 1 byte - 2 cycles - implied
-pub fn sec(cpu: anytype, _: AddressReturn) bool {
+pub fn sec(cpu: *Chip, _: AddressReturn) bool {
     cpu.status.set(.c, true);
     return false;
 }
@@ -917,7 +917,7 @@ pub fn sec(cpu: anytype, _: AddressReturn) bool {
 /// CLI - Clear Interrupt Disable
 /// `I = 0`
 /// 0x58 - 1 byte - 2 cycles - implied
-pub fn cli(cpu: anytype, _: AddressReturn) bool {
+pub fn cli(cpu: *Chip, _: AddressReturn) bool {
     cpu.status.set(.i, false);
     return false;
 }
@@ -925,7 +925,7 @@ pub fn cli(cpu: anytype, _: AddressReturn) bool {
 /// SEI - Set interrupt Disable
 /// `I = 1`
 /// 0x78 - 1 byte - 2 cycles - implied
-pub fn sei(cpu: anytype, _: AddressReturn) bool {
+pub fn sei(cpu: *Chip, _: AddressReturn) bool {
     cpu.status.set(.i, true);
     return false;
 }
@@ -933,7 +933,7 @@ pub fn sei(cpu: anytype, _: AddressReturn) bool {
 /// CLD - CLear Decimal
 /// `D = 0`
 /// 0xD8 - 1 byte - 2 cycles - implied
-pub fn cld(cpu: anytype, _: AddressReturn) bool {
+pub fn cld(cpu: *Chip, _: AddressReturn) bool {
     cpu.status.set(.d, false);
     return false;
 }
@@ -941,7 +941,7 @@ pub fn cld(cpu: anytype, _: AddressReturn) bool {
 /// SED - Set Decimal
 /// `D = 1`
 /// 0xF8 - 1 byte - 2 cycles - implied
-pub fn sed(cpu: anytype, _: AddressReturn) bool {
+pub fn sed(cpu: *Chip, _: AddressReturn) bool {
     cpu.status.set(.d, true);
     return false;
 }
@@ -949,17 +949,17 @@ pub fn sed(cpu: anytype, _: AddressReturn) bool {
 /// CLV - Clear Overflow
 /// `V = 0`
 /// 0xB8 - 1 byte - 2 cycles - implied
-pub fn clv(cpu: anytype, _: AddressReturn) bool {
+pub fn clv(cpu: *Chip, _: AddressReturn) bool {
     cpu.status.set(.v, false);
     return false;
 }
 
 /// NOP - No Operation
 /// 0xEA - 1 byte - 2 cycles - implied
-pub fn nop(_: anytype, _: AddressReturn) bool {
+pub fn nop(_: *Chip, _: AddressReturn) bool {
     return false;
 }
 
-pub fn type_unknown(_: anytype, _: AddressReturn) bool {
+pub fn type_unknown(_: *Chip, _: AddressReturn) bool {
     @panic("unknown instruction type!");
 }
