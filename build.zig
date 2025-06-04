@@ -1,5 +1,16 @@
 const std = @import("std");
 
+const tests = [_][]const u8{
+    "src/chip/mos_technology_6502.zig",
+};
+
+const chips = [_]struct {
+    name: []const u8,
+    path: []const u8,
+}{
+    .{ .name = "mos6502", .path = "src/chip/mos_technology_6502.zig" },
+};
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -25,6 +36,16 @@ pub fn build(b: *std.Build) void {
 
     exe_mod.linkLibrary(sdl_lib);
     exe_mod.addImport("gl", gl_bindings);
+
+    for (chips) |chip| {
+        const chip_mod = b.createModule(.{
+            .root_source_file = b.path(chip.path),
+            .target = target,
+            .optimize = optimize,
+        });
+
+        exe_mod.addImport(chip.name, chip_mod);
+    }
 
     const exe = b.addExecutable(.{
         .name = "motoko",
@@ -52,12 +73,6 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
         });
 
-        test_mod.addAnonymousImport("contracts", .{
-            .root_source_file = b.path("src/contracts.zig"),
-            .target = target,
-            .optimize = optimize,
-        });
-
         const unit_tests = b.addTest(.{
             .root_module = test_mod,
             .target = target,
@@ -68,7 +83,3 @@ pub fn build(b: *std.Build) void {
         test_step.dependOn(&run_unit_tests.step);
     }
 }
-
-const tests = [_][]const u8{
-    "src/chip/mos_technology_6502.zig",
-};

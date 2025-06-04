@@ -1,7 +1,7 @@
 const std = @import("std");
-const instructions = @import("mos_technology_6502/instructions.zig");
-const Bus = @import("mos_technology_6502/Bus.zig");
-const TestBus = @import("mos_technology_6502/testing.zig").TestBus;
+pub const instructions = @import("mos_technology_6502/instructions.zig");
+pub const Bus = @import("mos_technology_6502/Bus.zig");
+pub const TestBus = @import("mos_technology_6502/testing.zig").TestBus;
 
 pub const Status = struct {
     data: u8,
