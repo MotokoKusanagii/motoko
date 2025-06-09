@@ -1,66 +1,60 @@
 const std = @import("std");
-const gl = @import("gl");
-const c = @import("c.zig");
-const sdl = c.sdl;
-
-const Console = @import("ui.zig").Console;
-const Chip = @import("chip/mos_technology_6502.zig");
-
-const text_scale = 2.5;
-const char_size = c.SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE;
+const glfw = @import("zglfw");
+const opengl = @import("zopengl");
+const gui = @import("zgui");
 
 pub fn main() !void {
-    c.SDL_SetMainReady();
+    try glfw.init();
+    defer glfw.terminate();
 
-    try sdl(c.SDL_Init(c.SDL_INIT_VIDEO));
+    const gl_major = 4;
+    const gl_minor = 0;
+    glfw.windowHint(.context_version_major, gl_major);
+    glfw.windowHint(.context_version_minor, gl_minor);
+    glfw.windowHint(.opengl_profile, .opengl_core_profile);
+    glfw.windowHint(.opengl_forward_compat, true);
+    glfw.windowHint(.client_api, .opengl_api);
+    glfw.windowHint(.doublebuffer, true);
 
-    const window_flags = c.SDL_WINDOW_RESIZABLE;
-    const window: *c.SDL_Window = try sdl(c.SDL_CreateWindow("Motoko", 800, 400, window_flags));
-    defer c.SDL_DestroyWindow(window);
-    const renderer: *c.SDL_Renderer = try sdl(c.SDL_CreateRenderer(window, null));
-    defer c.SDL_DestroyRenderer(renderer);
+    const window = try glfw.Window.create(800, 600, "Motoko Emulator", null);
+    defer window.destroy();
 
-    var da = std.heap.DebugAllocator(.{}).init;
-    defer {
-        if (da.deinit() == .leak) {
-            @panic("Errrrmmm leaks detected!");
-        }
-    }
+    glfw.makeContextCurrent(window);
+
+    try opengl.loadCoreProfile(glfw.getProcAddress, gl_major, gl_minor);
+
+    const gl = opengl.bindings;
+
+    glfw.swapInterval(1);
+
+    var da = std.heap.GeneralPurposeAllocator(.{}).init;
     const allocator = da.allocator();
 
-    var console = Console.init(allocator, renderer, 0, 0, 3, 5);
-    defer console.deinit();
-    try console.info("Console initialized.");
+    gui.init(allocator);
+    defer gui.deinit();
 
-    main_loop: while (true) {
-        var event: c.SDL_Event = undefined;
-        while (c.SDL_PollEvent(&event)) {
-            switch (event.type) {
-                c.SDL_EVENT_QUIT => {
-                    break :main_loop;
-                },
-                c.SDL_EVENT_KEY_DOWN => {
-                    switch (event.key.key) {
-                        c.SDLK_UP => {
-                            console.scale += 1;
-                        },
-                        c.SDLK_DOWN => {
-                            console.scale -= 1;
-                        },
-                        else => {},
-                    }
-                },
-                else => {},
+    gui.backend.init(window);
+    defer gui.backend.deinit();
+
+    while (!window.shouldClose()) {
+        glfw.pollEvents();
+
+        // GL
+        gl.clearBufferfv(gl.COLOR, 0, &[_]f32{ 0.102, 0.106, 0.149, 1.0 });
+
+        // GUI
+        const fb_size = window.getFramebufferSize();
+        gui.backend.newFrame(@intCast(fb_size[0]), @intCast(fb_size[1]));
+
+        if (gui.begin("Emulator", .{})) {
+            if (gui.button("Test!", .{ .w = 200 })) {
+                std.debug.print("Test!\n", .{});
             }
         }
+        gui.end();
 
-        try sdl(c.SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255));
-        try sdl(c.SDL_RenderClear(renderer));
+        gui.backend.draw();
 
-        // Text
-        try console.draw();
-
-        try sdl(c.SDL_SetRenderScale(renderer, 1, 1));
-        try sdl(c.SDL_RenderPresent(renderer));
+        window.swapBuffers();
     }
 }
