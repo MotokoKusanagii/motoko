@@ -56,6 +56,43 @@ pub fn lda(self: *Assembler, mode: Mode, args: anytype) void {
     }
 }
 
+pub fn sta(self: *Assembler, mode: Mode, args: anytype) void {
+    switch (mode) {
+        .zero_page => {
+            self.write(0x85);
+            self.write(args[0]);
+        },
+        .zero_page_x => {
+            self.write(0x95);
+            self.write(args[0]);
+        },
+        .absolute => {
+            self.write(0x8D);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        .absolute_x => {
+            self.write(0x9D);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        .absolute_y => {
+            self.write(0x99);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        .indirect_x => {
+            self.write(0x81);
+            self.write(args[0]);
+        },
+        .indirect_y => {
+            self.write(0x91);
+            self.write(args[0]);
+        },
+        else => {},
+    }
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;

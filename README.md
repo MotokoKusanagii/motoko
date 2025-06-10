@@ -41,7 +41,7 @@ zig build
 |     | Instruction      | Assembler        |
 |-----|------------------|------------------|
 | LDA |:white_check_mark:|:white_check_mark:|
-| STA |:white_check_mark:|:x:               |
+| STA |:white_check_mark:|:white_check_mark:|
 | LDX |:white_check_mark:|:x:               |
 | STX |:white_check_mark:|:x:               |
 | LDY |:white_check_mark:|:x:               |
