@@ -50,7 +50,7 @@ zig build
 | TXA |:white_check_mark:|:white_check_mark:|
 | TAY |:white_check_mark:|:white_check_mark:|
 | TYA |:white_check_mark:|:white_check_mark:|
-| ADC |:white_check_mark:|:x:               |
+| ADC |:white_check_mark:|:white_check_mark:|
 | SBC |:white_check_mark:|:x:               |
 | INC |:white_check_mark:|:x:               |
 | DEC |:white_check_mark:|:x:               |

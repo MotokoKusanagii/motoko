@@ -203,6 +203,47 @@ pub fn tya(self: *Assembler) void {
     self.write(0x98);
 }
 
+pub fn adc(self: *Assembler, mode: Mode, args: anytype) void {
+    switch (mode) {
+        .immediate => {
+            self.write(0x69);
+            self.write(args[0]);
+        },
+        .zero_page => {
+            self.write(0x65);
+            self.write(args[0]);
+        },
+        .zero_page_x => {
+            self.write(0x75);
+            self.write(args[0]);
+        },
+        .absolute => {
+            self.write(0x6D);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        .absolute_x => {
+            self.write(0x7D);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        .absolute_y => {
+            self.write(0x79);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        .indirect_x => {
+            self.write(0x61);
+            self.write(args[0]);
+        },
+        .indirect_y => {
+            self.write(0x71);
+            self.write(args[0]);
+        },
+        else => {},
+    }
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
