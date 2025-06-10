@@ -140,6 +140,34 @@ pub fn stx(self: *Assembler, mode: Mode, args: anytype) void {
     }
 }
 
+pub fn ldy(self: Assembler, mode: Mode, args: anytype) void {
+    switch (mode) {
+        .immediate => {
+            self.write(0xA0);
+            self.write(args[0]);
+        },
+        .zero_page => {
+            self.write(0xA4);
+            self.write(args[0]);
+        },
+        .zero_page_x => {
+            self.write(0xB4);
+            self.write(args[0]);
+        },
+        .absolute => {
+            self.write(0xAC);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        .absolute_x => {
+            self.write(0xBC);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        else => {},
+    }
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
