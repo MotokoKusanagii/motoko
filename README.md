@@ -5,7 +5,6 @@
   - [Usage](#usage)
     - [Building](#building)
   - [Libraries](#libraries)
-  - [Todos](#todos)
   - [License](#license)
 <!--toc:end-->
 
@@ -31,11 +30,6 @@ zig build
 - [SDL](https://github.com/castholm/SDL?tab=readme-ov-file) ported to the zig build system
 - [zigglgen](https://github.com/castholm/zigglgen) (currently unused)
 
-## Todos
-
-- [ ] Make `mos_technology_6502` a proper interface
-- [ ] Chips should be their own module
-
 ## License
 
-This repository is under the [GNU General Public License Version 3](LICENSE)
+[GNU General Public License Version 3](LICENSE)
