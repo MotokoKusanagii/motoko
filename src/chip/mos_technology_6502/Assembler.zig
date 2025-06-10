@@ -195,6 +195,10 @@ pub fn txa(self: *Assembler) void {
     self.write(0x8A);
 }
 
+pub fn tay(self: *Assembler) void {
+    self.write(0xA8);
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
