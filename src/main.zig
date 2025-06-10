@@ -38,7 +38,12 @@ pub fn main() !void {
     gui.backend.init(window);
     defer gui.backend.deinit();
 
-    var bus = mos6502.TestBus.setup(&.{ 0x18, 0xA9, 0x10, 0x69, 0x20 });
+    var bus = mos6502.TestBus.setup(&.{});
+    bus.data[0xCCA5] = 0xBB;
+
+    var asem = mos6502.Assembler.init(bus.bus(), 0xF000);
+    asem.lda(.absolute, .{ 0xA5, 0xCC });
+
     var chip = mos6502.Chip.init(bus.bus());
     chip.powerOn();
 
@@ -56,7 +61,7 @@ pub fn main() !void {
             if (gui.button("Test!", .{ .w = 200 })) {
                 std.debug.print("Test!\n", .{});
             }
-            if (gui.button("clock", .{})) {
+            if (gui.button("clock", .{ .w = 200 })) {
                 chip.clock();
             }
             gui.text("Register: ", .{});
@@ -64,7 +69,7 @@ pub fn main() !void {
             gui.text("A: {X}, X: {X}, Y: {X}", .{ chip.a, chip.x, chip.y });
             gui.text("PC: {X}, SP: {X}", .{ chip.pc, chip.sp });
             gui.text("(PC): {X}", .{chip.read(chip.pc)});
-            gui.text("Status: {b}", .{chip.status.data});
+            gui.text("Status: {b:.8}", .{chip.status.data});
             gui.text("cycles left: {x}", .{chip.cycles_left});
             gui.spacing();
 

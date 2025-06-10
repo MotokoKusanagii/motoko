@@ -3,6 +3,7 @@ pub const instructions = @import("mos_technology_6502/instructions.zig");
 pub const Instruction = @import("mos_technology_6502/Instruction.zig");
 pub const Bus = @import("mos_technology_6502/Bus.zig");
 pub const TestBus = @import("mos_technology_6502/testing.zig").TestBus;
+pub const Assembler = @import("mos_technology_6502/Assembler.zig");
 
 pub const Status = struct {
     data: u8,
