@@ -93,6 +93,34 @@ pub fn sta(self: *Assembler, mode: Mode, args: anytype) void {
     }
 }
 
+pub fn ldx(self: *Assembler, mode: Mode, args: anytype) void {
+    switch (mode) {
+        .immediate => {
+            self.write(0xA2);
+            self.write(args[0]);
+        },
+        .zero_page => {
+            self.write(0xA6);
+            self.write(args[0]);
+        },
+        .zero_page_y => {
+            self.write(0xB6);
+            self.write(args[0]);
+        },
+        .absolute => {
+            self.write(0xAE);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        .absolute_y => {
+            self.write(0xBE);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        else => {},
+    }
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
