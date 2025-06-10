@@ -140,7 +140,7 @@ pub fn stx(self: *Assembler, mode: Mode, args: anytype) void {
     }
 }
 
-pub fn ldy(self: Assembler, mode: Mode, args: anytype) void {
+pub fn ldy(self: *Assembler, mode: Mode, args: anytype) void {
     switch (mode) {
         .immediate => {
             self.write(0xA0);
@@ -168,7 +168,7 @@ pub fn ldy(self: Assembler, mode: Mode, args: anytype) void {
     }
 }
 
-pub fn sty(self: Assembler, mode: Mode, args: anytype) void {
+pub fn sty(self: *Assembler, mode: Mode, args: anytype) void {
     switch (mode) {
         .zero_page => {
             self.write(0x84);
@@ -185,6 +185,10 @@ pub fn sty(self: Assembler, mode: Mode, args: anytype) void {
         },
         else => {},
     }
+}
+
+pub fn tax(self: *Assembler) void {
+    self.write(0xAA);
 }
 
 fn write(self: *Assembler, value: u8) void {

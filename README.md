@@ -46,7 +46,7 @@ zig build
 | STX |:white_check_mark:|:white_check_mark:|
 | LDY |:white_check_mark:|:white_check_mark:|
 | STY |:white_check_mark:|:white_check_mark:|
-| TAX |:white_check_mark:|:x:               |
+| TAX |:white_check_mark:|:white_check_mark:|
 | TXA |:white_check_mark:|:x:               |
 | TAY |:white_check_mark:|:x:               |
 | TYA |:white_check_mark:|:x:               |
