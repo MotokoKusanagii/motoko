@@ -15,173 +15,178 @@ pub fn init(bus: Bus, start: u16) Assembler {
     };
 }
 
-pub fn lda(self: *Assembler, mode: Mode, args: anytype) void {
+pub const Arg = struct {
+    first: u8 = 0x00,
+    second: u8 = 0x00,
+};
+
+pub fn lda(self: *Assembler, mode: Mode, args: Arg) void {
     switch (mode) {
         .immediate => {
             self.write(0xA9);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .zero_page => {
             self.write(0xA5);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .zero_page_x => {
             self.write(0xB5);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .absolute => {
             self.write(0xAD);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         .absolute_x => {
             self.write(0xBD);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         .absolute_y => {
             self.write(0xB9);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         .indirect_x => {
             self.write(0xA1);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .indirect_y => {
             self.write(0xB1);
-            self.write(args[0]);
+            self.write(args.first);
         },
         else => {},
     }
 }
 
-pub fn sta(self: *Assembler, mode: Mode, args: anytype) void {
+pub fn sta(self: *Assembler, mode: Mode, args: Arg) void {
     switch (mode) {
         .zero_page => {
             self.write(0x85);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .zero_page_x => {
             self.write(0x95);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .absolute => {
             self.write(0x8D);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         .absolute_x => {
             self.write(0x9D);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         .absolute_y => {
             self.write(0x99);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         .indirect_x => {
             self.write(0x81);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .indirect_y => {
             self.write(0x91);
-            self.write(args[0]);
+            self.write(args.first);
         },
         else => {},
     }
 }
 
-pub fn ldx(self: *Assembler, mode: Mode, args: anytype) void {
+pub fn ldx(self: *Assembler, mode: Mode, args: Arg) void {
     switch (mode) {
         .immediate => {
             self.write(0xA2);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .zero_page => {
             self.write(0xA6);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .zero_page_y => {
             self.write(0xB6);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .absolute => {
             self.write(0xAE);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         .absolute_y => {
             self.write(0xBE);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         else => {},
     }
 }
 
-pub fn stx(self: *Assembler, mode: Mode, args: anytype) void {
+pub fn stx(self: *Assembler, mode: Mode, args: Arg) void {
     switch (mode) {
         .zero_page => {
             self.write(0x86);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .zero_page_y => {
             self.write(0x96);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .absolute => {
             self.write(0x8E);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         else => {},
     }
 }
 
-pub fn ldy(self: *Assembler, mode: Mode, args: anytype) void {
+pub fn ldy(self: *Assembler, mode: Mode, args: Arg) void {
     switch (mode) {
         .immediate => {
             self.write(0xA0);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .zero_page => {
             self.write(0xA4);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .zero_page_x => {
             self.write(0xB4);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .absolute => {
             self.write(0xAC);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         .absolute_x => {
             self.write(0xBC);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         else => {},
     }
 }
 
-pub fn sty(self: *Assembler, mode: Mode, args: anytype) void {
+pub fn sty(self: *Assembler, mode: Mode, args: Arg) void {
     switch (mode) {
         .zero_page => {
             self.write(0x84);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .zero_page_x => {
             self.write(0x94);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .absolute => {
             self.write(0x8C);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         else => {},
     }
@@ -203,83 +208,83 @@ pub fn tya(self: *Assembler) void {
     self.write(0x98);
 }
 
-pub fn adc(self: *Assembler, mode: Mode, args: anytype) void {
+pub fn adc(self: *Assembler, mode: Mode, args: Arg) void {
     switch (mode) {
         .immediate => {
             self.write(0x69);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .zero_page => {
             self.write(0x65);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .zero_page_x => {
             self.write(0x75);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .absolute => {
             self.write(0x6D);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         .absolute_x => {
             self.write(0x7D);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         .absolute_y => {
             self.write(0x79);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         .indirect_x => {
             self.write(0x61);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .indirect_y => {
             self.write(0x71);
-            self.write(args[0]);
+            self.write(args.first);
         },
         else => {},
     }
 }
 
-pub fn sbc(self: *Assembler, mode: Mode, args: anytype) void {
+pub fn sbc(self: *Assembler, mode: Mode, args: Arg) void {
     switch (mode) {
         .immediate => {
             self.write(0xE9);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .zero_page => {
             self.write(0xE5);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .zero_page_x => {
             self.write(0xF5);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .absolute => {
             self.write(0xED);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         .absolute_x => {
             self.write(0xFD);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         .absolute_y => {
             self.write(0xF9);
-            self.write(args[0]);
-            self.write(args[1]);
+            self.write(args.first);
+            self.write(args.second);
         },
         .indirect_x => {
             self.write(0xE1);
-            self.write(args[0]);
+            self.write(args.first);
         },
         .indirect_y => {
             self.write(0xF1);
-            self.write(args[0]);
+            self.write(args.first);
         },
         else => {},
     }

@@ -42,7 +42,8 @@ pub fn main() !void {
     bus.data[0xCCA5] = 0xBB;
 
     var asem = mos6502.Assembler.init(bus.bus(), 0xF000);
-    asem.lda(.absolute, .{ 0xA5, 0xCC });
+    asem.lda(.absolute, .{ .first = 0xA5, .second = 0xCC });
+    asem.adc(.immediate, .{ .first = 0xBC });
 
     var chip = mos6502.Chip.init(bus.bus());
     chip.powerOn();
