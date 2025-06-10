@@ -121,6 +121,25 @@ pub fn ldx(self: *Assembler, mode: Mode, args: anytype) void {
     }
 }
 
+pub fn stx(self: *Assembler, mode: Mode, args: anytype) void {
+    switch (mode) {
+        .zero_page => {
+            self.write(0x86);
+            self.write(args[0]);
+        },
+        .zero_page_y => {
+            self.write(0x96);
+            self.write(args[0]);
+        },
+        .absolute => {
+            self.write(0x8E);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        else => {},
+    }
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;

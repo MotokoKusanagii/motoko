@@ -43,7 +43,7 @@ zig build
 | LDA |:white_check_mark:|:white_check_mark:|
 | STA |:white_check_mark:|:white_check_mark:|
 | LDX |:white_check_mark:|:white_check_mark:|
-| STX |:white_check_mark:|:x:               |
+| STX |:white_check_mark:|:white_check_mark:|
 | LDY |:white_check_mark:|:x:               |
 | STY |:white_check_mark:|:x:               |
 | TAX |:white_check_mark:|:x:               |
