@@ -244,6 +244,47 @@ pub fn adc(self: *Assembler, mode: Mode, args: anytype) void {
     }
 }
 
+pub fn sbc(self: *Assembler, mode: Mode, args: anytype) void {
+    switch (mode) {
+        .immediate => {
+            self.write(0xE9);
+            self.write(args[0]);
+        },
+        .zero_page => {
+            self.write(0xE5);
+            self.write(args[0]);
+        },
+        .zero_page_x => {
+            self.write(0xF5);
+            self.write(args[0]);
+        },
+        .absolute => {
+            self.write(0xED);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        .absolute_x => {
+            self.write(0xFD);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        .absolute_y => {
+            self.write(0xF9);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        .indirect_x => {
+            self.write(0xE1);
+            self.write(args[0]);
+        },
+        .indirect_y => {
+            self.write(0xF1);
+            self.write(args[0]);
+        },
+        else => {},
+    }
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
