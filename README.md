@@ -49,7 +49,7 @@ zig build
 | TAX |:white_check_mark:|:white_check_mark:|
 | TXA |:white_check_mark:|:white_check_mark:|
 | TAY |:white_check_mark:|:white_check_mark:|
-| TYA |:white_check_mark:|:x:               |
+| TYA |:white_check_mark:|:white_check_mark:|
 | ADC |:white_check_mark:|:x:               |
 | SBC |:white_check_mark:|:x:               |
 | INC |:white_check_mark:|:x:               |
