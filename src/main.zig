@@ -38,7 +38,7 @@ pub fn main() !void {
     gui.backend.init(window);
     defer gui.backend.deinit();
 
-    var bus = mos6502.TestBus.setup(&.{ 0xA9, 0xB1 });
+    var bus = mos6502.TestBus.setup(&.{ 0x18, 0xA9, 0x10, 0x69, 0x20 });
     var chip = mos6502.Chip.init(bus.bus());
     chip.powerOn();
 
@@ -64,6 +64,7 @@ pub fn main() !void {
             gui.text("A: {X}, X: {X}, Y: {X}", .{ chip.a, chip.x, chip.y });
             gui.text("PC: {X}, SP: {X}", .{ chip.pc, chip.sp });
             gui.text("(PC): {X}", .{chip.read(chip.pc)});
+            gui.text("Status: {b}", .{chip.status.data});
             gui.text("cycles left: {x}", .{chip.cycles_left});
             gui.spacing();
 
