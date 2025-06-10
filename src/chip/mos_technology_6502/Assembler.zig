@@ -168,6 +168,25 @@ pub fn ldy(self: Assembler, mode: Mode, args: anytype) void {
     }
 }
 
+pub fn sty(self: Assembler, mode: Mode, args: anytype) void {
+    switch (mode) {
+        .zero_page => {
+            self.write(0x84);
+            self.write(args[0]);
+        },
+        .zero_page_x => {
+            self.write(0x94);
+            self.write(args[0]);
+        },
+        .absolute => {
+            self.write(0x8C);
+            self.write(args[0]);
+            self.write(args[1]);
+        },
+        else => {},
+    }
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
