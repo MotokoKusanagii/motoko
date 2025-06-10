@@ -70,7 +70,7 @@ pub fn main() !void {
             gui.text("A: {X}, X: {X}, Y: {X}", .{ chip.a, chip.x, chip.y });
             gui.text("PC: {X}, SP: {X}", .{ chip.pc, chip.sp });
             gui.text("(PC): {X}", .{chip.read(chip.pc)});
-            gui.text("Status: {b:.8}", .{chip.status.data});
+            gui.text("Status: {b:0>8}", .{chip.status.data});
             gui.text("cycles left: {x}", .{chip.cycles_left});
             gui.spacing();
 
