@@ -18,7 +18,7 @@ pub const TestBus = struct {
         var b = TestBus{
             .data = undefined,
         };
-        @memset(&b.data, 0xAA);
+        @memset(&b.data, 0xEA);
 
         // Set pc 0xF000
         b.data[0xFFFC] = 0x00;

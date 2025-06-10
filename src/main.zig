@@ -3,6 +3,8 @@ const glfw = @import("zglfw");
 const opengl = @import("zopengl");
 const gui = @import("zgui");
 
+const mos6502 = @import("mos6502");
+
 pub fn main() !void {
     try glfw.init();
     defer glfw.terminate();
@@ -36,6 +38,10 @@ pub fn main() !void {
     gui.backend.init(window);
     defer gui.backend.deinit();
 
+    var bus = mos6502.TestBus.setup(&.{ 0xA9, 0xB1 });
+    var chip = mos6502.Chip.init(bus.bus());
+    chip.powerOn();
+
     while (!window.shouldClose()) {
         glfw.pollEvents();
 
@@ -50,6 +56,19 @@ pub fn main() !void {
             if (gui.button("Test!", .{ .w = 200 })) {
                 std.debug.print("Test!\n", .{});
             }
+            if (gui.button("clock", .{})) {
+                chip.clock();
+            }
+            gui.text("Register: ", .{});
+
+            gui.text("A: {X}, X: {X}, Y: {X}", .{ chip.a, chip.x, chip.y });
+            gui.text("PC: {X}, SP: {X}", .{ chip.pc, chip.sp });
+            gui.text("(PC): {X}", .{chip.read(chip.pc)});
+            gui.text("cycles left: {x}", .{chip.cycles_left});
+            gui.spacing();
+
+            var buffer: [30]u8 = undefined;
+            gui.text("Instruction: {s}", .{try mos6502.bufPrintCurInstr(chip, &buffer)});
         }
         gui.end();
 
