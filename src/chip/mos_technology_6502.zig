@@ -170,10 +170,50 @@ pub fn bufPrintCurInstr(chip: Chip, buf: []u8) ![]u8 {
     };
 
     return switch (decode.mode) {
-        .implied => try print(buf, "{s}", .{name}),
+        .accumulator, .implied => try print(buf, "{s}", .{name}),
         .immediate => blk: {
             const value = chip.read(chip.pc + 1);
             break :blk try print(buf, "{s} #${X}", .{ name, value });
+        },
+        .zero_page => blk: {
+            const value = chip.read(chip.pc + 1);
+            break :blk try print(buf, "{s} ${X}", .{ name, value });
+        },
+        .zero_page_x => blk: {
+            const value = chip.read(chip.pc + 1);
+            break :blk try print(buf, "{s} ${X},X", .{ name, value });
+        },
+        .zero_page_y => blk: {
+            const value = chip.read(chip.pc + 1);
+            break :blk try print(buf, "{s} ${X},Y", .{ name, value });
+        },
+        .absolute => blk: {
+            const lo = chip.read(chip.pc + 1);
+            const hi = chip.read(chip.pc + 2);
+            break :blk try print(buf, "{s} ${X}{X}", .{ name, hi, lo });
+        },
+        .absolute_x => blk: {
+            const lo = chip.read(chip.pc + 1);
+            const hi = chip.read(chip.pc + 2);
+            break :blk try print(buf, "{s} ${X}{X},X", .{ name, hi, lo });
+        },
+        .absolute_y => blk: {
+            const lo = chip.read(chip.pc + 1);
+            const hi = chip.read(chip.pc + 2);
+            break :blk try print(buf, "{s} ${X}{X},Y", .{ name, hi, lo });
+        },
+        .indirect => blk: {
+            const lo = chip.read(chip.pc + 1);
+            const hi = chip.read(chip.pc + 2);
+            break :blk try print(buf, "{s} (${X}{X})", .{ name, hi, lo });
+        },
+        .indirect_x => blk: {
+            const value = chip.read(chip.pc + 1);
+            break :blk try print(buf, "{s} (${X},X)", .{ name, value });
+        },
+        .indirect_y => blk: {
+            const value = chip.read(chip.pc + 1);
+            break :blk try print(buf, "{s} (${X}),Y", .{ name, value });
         },
         else => try print(buf, "{s}: no format", .{name}),
     };
