@@ -191,6 +191,10 @@ pub fn tax(self: *Assembler) void {
     self.write(0xAA);
 }
 
+pub fn txa(self: *Assembler) void {
+    self.write(0x8A);
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
