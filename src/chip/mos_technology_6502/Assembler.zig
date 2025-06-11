@@ -290,6 +290,30 @@ pub fn sbc(self: *Assembler, mode: Mode, args: Arg) void {
     }
 }
 
+pub fn inc(self: *Assembler, mode: Mode, args: Arg) void {
+    switch (mode) {
+        .zero_page => {
+            self.write(0xE6);
+            self.write(args.first);
+        },
+        .zero_page_x => {
+            self.write(0xF6);
+            self.write(args.first);
+        },
+        .absolute => {
+            self.write(0xEE);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .absolute_x => {
+            self.write(0xFE);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        else => {},
+    }
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
