@@ -2320,6 +2320,45 @@ test "bmi taken (crossed page)" {
     try std.testing.expectEqual(@as(u8, 3), cpu.cycles_left);
 }
 
+test "bvc not taken" {
+    var bus = TestBus.setup(&.{ 0x50, 0x10 });
+    var cpu = Chip.init(bus.bus());
+    cpu.powerOn();
+
+    cpu.status.set(.v, true);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u16, 0xF002), cpu.pc); // skips the branch
+    try std.testing.expectEqual(@as(u8, 1), cpu.cycles_left); // 2 cycles used
+}
+
+test "bvc taken" {
+    var bus = TestBus.setup(&.{ 0x50, 0x10 });
+    var cpu = Chip.init(bus.bus());
+    cpu.powerOn();
+
+    cpu.status.set(.v, false);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u16, 0xF012), cpu.pc);
+    try std.testing.expectEqual(@as(u8, 2), cpu.cycles_left);
+}
+
+test "bvc taken (crossed page)" {
+    var bus = TestBus.setup(&.{ 0x50, 0xFF });
+    var cpu = Chip.init(bus.bus());
+    cpu.powerOn();
+
+    cpu.status.set(.v, false);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u16, 0xF101), cpu.pc);
+    try std.testing.expectEqual(@as(u8, 3), cpu.cycles_left);
+}
+
 test "jmp absolute" {
     // JMP $5025
     var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });
