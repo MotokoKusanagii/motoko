@@ -65,6 +65,9 @@ pub fn main() !void {
             if (gui.button("clock", .{ .w = 200 })) {
                 chip.clock();
             }
+            if (gui.button("reset", .{ .w = 200 })) {
+                chip.reset();
+            }
             gui.text("Register: ", .{});
 
             gui.text("A: {X}, X: {X}, Y: {X}", .{ chip.a, chip.x, chip.y });
