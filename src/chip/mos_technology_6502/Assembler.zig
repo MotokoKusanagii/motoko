@@ -354,6 +354,33 @@ pub fn dey(self: *Assembler) void {
     self.write(0x88);
 }
 
+pub fn asl(self: *Assembler, mode: Mode, args: Arg) void {
+    switch (mode) {
+        .accumulator => {
+            self.write(0x0A);
+        },
+        .zero_page => {
+            self.write(0x06);
+            self.write(args.first);
+        },
+        .zero_page_x => {
+            self.write(0x16);
+            self.write(args.first);
+        },
+        .absolute => {
+            self.write(0x0E);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .absolute_x => {
+            self.write(0x1E);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        else => {},
+    }
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
