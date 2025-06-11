@@ -63,8 +63,8 @@ zig build
 | ROL |:white_check_mark:|:white_check_mark:|
 | ROR |:white_check_mark:|:white_check_mark:|
 | AND |:white_check_mark:|:white_check_mark:|
-| ORA |:white_check_mark:|:x:               |
-| EOR |:white_check_mark:|:x:               |
+| ORA |:white_check_mark:|:white_check_mark:|
+| EOR |:white_check_mark:|:white_check_mark:|
 | BIT |:white_check_mark:|:x:               |
 | CMP |:white_check_mark:|:x:               |
 | CPX |:white_check_mark:|:x:               |

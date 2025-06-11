@@ -503,6 +503,88 @@ pub fn @"and"(self: *Assembler, mode: Mode, args: Arg) void {
     }
 }
 
+pub fn ora(self: *Assembler, mode: Mode, args: Arg) void {
+    switch (mode) {
+        .immediate => {
+            self.write(0x09);
+            self.write(args.first);
+        },
+        .zero_page => {
+            self.write(0x05);
+            self.write(args.first);
+        },
+        .zero_page_x => {
+            self.write(0x15);
+            self.write(args.first);
+        },
+        .absolute => {
+            self.write(0x0D);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .absolute_x => {
+            self.write(0x1D);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .absolute_y => {
+            self.write(0x19);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .indirect_x => {
+            self.write(0x01);
+            self.write(args.first);
+        },
+        .indirect_y => {
+            self.write(0x11);
+            self.write(args.first);
+        },
+        else => {},
+    }
+}
+
+pub fn eor(self: *Assembler, mode: Mode, args: Arg) void {
+    switch (mode) {
+        .immediate => {
+            self.write(0x49);
+            self.write(args.first);
+        },
+        .zero_page => {
+            self.write(0x45);
+            self.write(args.first);
+        },
+        .zero_page_x => {
+            self.write(0x55);
+            self.write(args.first);
+        },
+        .absolute => {
+            self.write(0x4D);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .absolute_x => {
+            self.write(0x5D);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .absolute_y => {
+            self.write(0x59);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .indirect_x => {
+            self.write(0x41);
+            self.write(args.first);
+        },
+        .indirect_y => {
+            self.write(0x51);
+            self.write(args.first);
+        },
+        else => {},
+    }
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
