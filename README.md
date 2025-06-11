@@ -57,7 +57,7 @@ zig build
 | INX |:white_check_mark:|:white_check_mark:|
 | DEX |:white_check_mark:|:white_check_mark:|
 | INY |:white_check_mark:|:white_check_mark:|
-| DEY |:white_check_mark:|:x:               |
+| DEY |:white_check_mark:|:white_check_mark:|
 | ASL |:white_check_mark:|:x:               |
 | LSR |:white_check_mark:|:x:               |
 | ROL |:white_check_mark:|:x:               |

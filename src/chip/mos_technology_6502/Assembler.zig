@@ -350,6 +350,10 @@ pub fn iny(self: *Assembler) void {
     self.write(0xC8);
 }
 
+pub fn dey(self: *Assembler) void {
+    self.write(0x88);
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
