@@ -435,6 +435,33 @@ pub fn rol(self: *Assembler, mode: Mode, args: Arg) void {
     }
 }
 
+pub fn ror(self: *Assembler, mode: Mode, args: Arg) void {
+    switch (mode) {
+        .accumulator => {
+            self.write(0x6A);
+        },
+        .zero_page => {
+            self.write(0x66);
+            self.write(args.first);
+        },
+        .zero_page_x => {
+            self.write(0x76);
+            self.write(args.first);
+        },
+        .absolute => {
+            self.write(0x6E);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .absolute_x => {
+            self.write(0x7E);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        else => {},
+    }
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;

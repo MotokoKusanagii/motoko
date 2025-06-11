@@ -61,7 +61,7 @@ zig build
 | ASL |:white_check_mark:|:white_check_mark:|
 | LSR |:white_check_mark:|:white_check_mark:|
 | ROL |:white_check_mark:|:white_check_mark:|
-| ROR |:white_check_mark:|:x:               |
+| ROR |:white_check_mark:|:white_check_mark:|
 | AND |:white_check_mark:|:x:               |
 | ORA |:white_check_mark:|:x:               |
 | EOR |:white_check_mark:|:x:               |
