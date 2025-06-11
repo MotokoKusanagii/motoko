@@ -47,6 +47,7 @@ pub const Type = enum {
     // TODO: Branch
     bcc,
     bcs,
+    beq,
     // Jump
     jmp,
     jsr,
@@ -140,6 +141,7 @@ pub fn run(self: Instruction, cpu: *Chip) bool {
         .cpy => instructions.cpy(cpu, address_return),
         .bcc => instructions.bcc(cpu, address_return),
         .bcs => instructions.bcs(cpu, address_return),
+        .beq => instructions.beq(cpu, address_return),
         .jmp => instructions.jmp(cpu, address_return),
         .jsr => instructions.jsr(cpu, address_return),
         .rts => instructions.rts(cpu, address_return),
@@ -854,6 +856,11 @@ pub fn decode(opcode: u8) Instruction {
             .type = .inc,
             .mode = .absolute,
             .cycles = 6,
+        },
+        0xF0 => .{
+            .type = .beq,
+            .mode = .relative,
+            .cycles = 2,
         },
         0xF1 => .{
             .type = .sbc,

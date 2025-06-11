@@ -773,6 +773,24 @@ pub fn bcs(cpu: *Chip, ret: AddressReturn) bool {
     return false;
 }
 
+/// BEQ - Branch if Equal
+/// `PC = PC + 2 + memory (signed)`
+/// 0xF0 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
+pub fn beq(cpu: *Chip, ret: AddressReturn) bool {
+    if (cpu.status.isSet(.z)) {
+        cpu.cycles_left += 1;
+        const new_pc: u16 = cpu.pc + ret.relative;
+
+        if ((new_pc & 0xFF00) != (cpu.pc & 0xFF00)) {
+            cpu.cycles_left += 1;
+        }
+
+        cpu.pc = new_pc;
+    }
+
+    return false;
+}
+
 /// JMP - Jump
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute
