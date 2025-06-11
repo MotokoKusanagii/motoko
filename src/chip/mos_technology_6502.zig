@@ -97,7 +97,9 @@ pub const Chip = struct {
 
             self.cycles_left = decode.cycles;
 
-            self.cycles_left += if (decode.run(self)) 1 else 0;
+            const cycle_request = decode.run(self);
+
+            self.cycles_left += if (cycle_request) 1 else 0;
         }
 
         self.cycles_left -= 1;
