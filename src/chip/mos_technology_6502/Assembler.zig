@@ -462,6 +462,47 @@ pub fn ror(self: *Assembler, mode: Mode, args: Arg) void {
     }
 }
 
+pub fn @"and"(self: *Assembler, mode: Mode, args: Arg) void {
+    switch (mode) {
+        .immediate => {
+            self.write(0x29);
+            self.write(args.first);
+        },
+        .zero_page => {
+            self.write(0x25);
+            self.write(args.first);
+        },
+        .zero_page_x => {
+            self.write(0x35);
+            self.write(args.first);
+        },
+        .absolute => {
+            self.write(0x2D);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .absolute_x => {
+            self.write(0x3D);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .absolute_y => {
+            self.write(0x39);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .indirect_x => {
+            self.write(0x21);
+            self.write(args.first);
+        },
+        .indirect_y => {
+            self.write(0x31);
+            self.write(args.first);
+        },
+        else => {},
+    }
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
