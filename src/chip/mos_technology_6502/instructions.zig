@@ -7,6 +7,7 @@ pub const AddressReturn = struct {
     cycle_request: bool,
     address: u16,
     accumulator: bool = false,
+    relative: u8 = 0x00,
 };
 
 pub const micro = struct {
@@ -165,6 +166,21 @@ pub fn indirectY(cpu: *Chip) AddressReturn {
     return .{
         .cycle_request = page_boundary_crossed,
         .address = address,
+    };
+}
+
+pub fn relative(cpu: *Chip) AddressReturn {
+    var offset = cpu.read(cpu.pc);
+    cpu.pc += 1;
+
+    if (offset & 0x80 != 0) {
+        offset |= 0x00;
+    }
+
+    return .{
+        .cycle_request = false,
+        .address = 0x00,
+        .relative = offset,
     };
 }
 
@@ -719,6 +735,24 @@ pub fn cpy(cpu: *Chip, ret: AddressReturn) bool {
     cpu.status.set(.z, cpu.y == value);
     cpu.status.set(.n, result & 0x80 != 0);
     return ret.cycle_request;
+}
+
+/// BCC - Branch if Carry Clear
+/// `PC = PC + 2 + memory (signed)`
+/// 0x90 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
+pub fn bcc(cpu: *Chip, ret: AddressReturn) bool {
+    if (!cpu.status.isSet(.c)) {
+        cpu.cycles_left += 1;
+        const new_pc: u16 = cpu.pc + ret.relative;
+
+        if ((new_pc & 0xFF00) != (cpu.pc & 0xFF00)) {
+            cpu.cycles_left += 1;
+        }
+
+        cpu.pc = new_pc;
+    }
+
+    return false;
 }
 
 /// JMP - Jump

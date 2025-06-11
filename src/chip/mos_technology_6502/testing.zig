@@ -2086,6 +2086,45 @@ test "cpy absolute" {
     try std.testing.expect(cpu.status.isSet(.n)); // 0xFF - 0x01 = 0xFE → N set
 }
 
+test "bcc not taken" {
+    var bus = TestBus.setup(&.{ 0x90, 0x10 }); // BCC + $10
+    var cpu = Chip.init(bus.bus());
+    cpu.powerOn();
+
+    cpu.status.set(.c, true); // carry is set → branch not taken
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u16, 0xF002), cpu.pc); // skips the branch
+    try std.testing.expectEqual(@as(u8, 1), cpu.cycles_left); // 2 cycles used
+}
+
+test "bcc taken" {
+    var bus = TestBus.setup(&.{ 0x90, 0x10 }); // BCC + $10
+    var cpu = Chip.init(bus.bus());
+    cpu.powerOn();
+
+    cpu.status.set(.c, false); // carry is not set → branch taken
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u16, 0xF012), cpu.pc);
+    try std.testing.expectEqual(@as(u8, 2), cpu.cycles_left);
+}
+
+test "bcc taken (crossed page)" {
+    var bus = TestBus.setup(&.{ 0x90, 0xFF }); // BCC + $10
+    var cpu = Chip.init(bus.bus());
+    cpu.powerOn();
+
+    cpu.status.set(.c, false); // carry is not set → branch taken
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u16, 0xF101), cpu.pc);
+    try std.testing.expectEqual(@as(u8, 3), cpu.cycles_left);
+}
+
 test "jmp absolute" {
     // JMP $5025
     var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });

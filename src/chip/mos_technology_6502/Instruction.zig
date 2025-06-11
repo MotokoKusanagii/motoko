@@ -45,6 +45,7 @@ pub const Type = enum {
     cpx,
     cpy,
     // TODO: Branch
+    bcc,
     // Jump
     jmp,
     jsr,
@@ -84,6 +85,7 @@ pub const Mode = enum {
     indirect,
     indirect_x,
     indirect_y,
+    relative,
     unknown,
 };
 
@@ -101,6 +103,7 @@ pub fn run(self: Instruction, cpu: *Chip) bool {
         .indirect => instructions.indirect(cpu),
         .indirect_x => instructions.indirectX(cpu),
         .indirect_y => instructions.indirectY(cpu),
+        .relative => instructions.relative(cpu),
         .unknown => instructions.address_unknown(cpu),
     };
 
@@ -134,6 +137,7 @@ pub fn run(self: Instruction, cpu: *Chip) bool {
         .cmp => instructions.cmp(cpu, address_return),
         .cpx => instructions.cpx(cpu, address_return),
         .cpy => instructions.cpy(cpu, address_return),
+        .bcc => instructions.bcc(cpu, address_return),
         .jmp => instructions.jmp(cpu, address_return),
         .jsr => instructions.jsr(cpu, address_return),
         .rts => instructions.rts(cpu, address_return),
@@ -543,6 +547,11 @@ pub fn decode(opcode: u8) Instruction {
             .type = .stx,
             .mode = .absolute,
             .cycles = 4,
+        },
+        0x90 => .{
+            .type = .bcc,
+            .mode = .relative,
+            .cycles = 2,
         },
         0x91 => .{
             .type = .sta,
