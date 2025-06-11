@@ -641,6 +641,25 @@ pub fn cmp(self: *Assembler, mode: Mode, args: Arg) void {
     }
 }
 
+pub fn cpx(self: *Assembler, mode: Mode, args: Arg) void {
+    switch (mode) {
+        .immediate => {
+            self.write(0xE0);
+            self.write(args.first);
+        },
+        .zero_page => {
+            self.write(0xE4);
+            self.write(args.first);
+        },
+        .absolute => {
+            self.write(0xEC);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        else => {},
+    }
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;

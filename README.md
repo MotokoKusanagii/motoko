@@ -67,7 +67,7 @@ zig build
 | EOR |:white_check_mark:|:white_check_mark:|
 | BIT |:white_check_mark:|:white_check_mark:|
 | CMP |:white_check_mark:|:white_check_mark:|
-| CPX |:white_check_mark:|:x:               |
+| CPX |:white_check_mark:|:white_check_mark:|
 | CPY |:white_check_mark:|:x:               |
 | BCC |:x:               |:x:               |
 | BCS |:x:               |:x:               |
