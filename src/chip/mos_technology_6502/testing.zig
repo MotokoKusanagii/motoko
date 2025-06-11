@@ -2113,7 +2113,7 @@ test "bcc taken" {
 }
 
 test "bcc taken (crossed page)" {
-    var bus = TestBus.setup(&.{ 0x90, 0xFF }); // BCC + $10
+    var bus = TestBus.setup(&.{ 0x90, 0xF1 });
     var cpu = Chip.init(bus.bus());
     cpu.powerOn();
 
@@ -2121,7 +2121,7 @@ test "bcc taken (crossed page)" {
 
     cpu.clock();
 
-    try std.testing.expectEqual(@as(u16, 0xF101), cpu.pc);
+    try std.testing.expectEqual(@as(u16, 0xEFF3), cpu.pc);
     try std.testing.expectEqual(@as(u8, 3), cpu.cycles_left);
 }
 
@@ -2152,7 +2152,7 @@ test "bcs taken" {
 }
 
 test "bcs taken (crossed page)" {
-    var bus = TestBus.setup(&.{ 0xB0, 0xFF });
+    var bus = TestBus.setup(&.{ 0xB0, 0xF1 });
     var cpu = Chip.init(bus.bus());
     cpu.powerOn();
 
@@ -2160,7 +2160,7 @@ test "bcs taken (crossed page)" {
 
     cpu.clock();
 
-    try std.testing.expectEqual(@as(u16, 0xF101), cpu.pc);
+    try std.testing.expectEqual(@as(u16, 0xEFF3), cpu.pc);
     try std.testing.expectEqual(@as(u8, 3), cpu.cycles_left);
 }
 
@@ -2191,7 +2191,7 @@ test "beq taken" {
 }
 
 test "beq taken (crossed page)" {
-    var bus = TestBus.setup(&.{ 0xF0, 0xFF });
+    var bus = TestBus.setup(&.{ 0xF0, 0xF1 });
     var cpu = Chip.init(bus.bus());
     cpu.powerOn();
 
@@ -2199,7 +2199,7 @@ test "beq taken (crossed page)" {
 
     cpu.clock();
 
-    try std.testing.expectEqual(@as(u16, 0xF101), cpu.pc);
+    try std.testing.expectEqual(@as(u16, 0xEFF3), cpu.pc);
     try std.testing.expectEqual(@as(u8, 3), cpu.cycles_left);
 }
 
@@ -2230,7 +2230,7 @@ test "bne taken" {
 }
 
 test "bne taken (crossed page)" {
-    var bus = TestBus.setup(&.{ 0xD0, 0xFF });
+    var bus = TestBus.setup(&.{ 0xD0, 0xF1 });
     var cpu = Chip.init(bus.bus());
     cpu.powerOn();
 
@@ -2238,7 +2238,7 @@ test "bne taken (crossed page)" {
 
     cpu.clock();
 
-    try std.testing.expectEqual(@as(u16, 0xF101), cpu.pc);
+    try std.testing.expectEqual(@as(u16, 0xEFF3), cpu.pc);
     try std.testing.expectEqual(@as(u8, 3), cpu.cycles_left);
 }
 
@@ -2269,7 +2269,7 @@ test "bpl taken" {
 }
 
 test "bpl taken (crossed page)" {
-    var bus = TestBus.setup(&.{ 0x10, 0xFF });
+    var bus = TestBus.setup(&.{ 0x10, 0xF1 });
     var cpu = Chip.init(bus.bus());
     cpu.powerOn();
 
@@ -2277,7 +2277,7 @@ test "bpl taken (crossed page)" {
 
     cpu.clock();
 
-    try std.testing.expectEqual(@as(u16, 0xF101), cpu.pc);
+    try std.testing.expectEqual(@as(u16, 0xEFF3), cpu.pc);
     try std.testing.expectEqual(@as(u8, 3), cpu.cycles_left);
 }
 
@@ -2308,7 +2308,7 @@ test "bmi taken" {
 }
 
 test "bmi taken (crossed page)" {
-    var bus = TestBus.setup(&.{ 0x30, 0xFF });
+    var bus = TestBus.setup(&.{ 0x30, 0xF1 });
     var cpu = Chip.init(bus.bus());
     cpu.powerOn();
 
@@ -2316,7 +2316,7 @@ test "bmi taken (crossed page)" {
 
     cpu.clock();
 
-    try std.testing.expectEqual(@as(u16, 0xF101), cpu.pc);
+    try std.testing.expectEqual(@as(u16, 0xEFF3), cpu.pc);
     try std.testing.expectEqual(@as(u8, 3), cpu.cycles_left);
 }
 
@@ -2347,7 +2347,7 @@ test "bvc taken" {
 }
 
 test "bvc taken (crossed page)" {
-    var bus = TestBus.setup(&.{ 0x50, 0xFF });
+    var bus = TestBus.setup(&.{ 0x50, 0xF1 });
     var cpu = Chip.init(bus.bus());
     cpu.powerOn();
 
@@ -2355,7 +2355,7 @@ test "bvc taken (crossed page)" {
 
     cpu.clock();
 
-    try std.testing.expectEqual(@as(u16, 0xF101), cpu.pc);
+    try std.testing.expectEqual(@as(u16, 0xEFF3), cpu.pc);
     try std.testing.expectEqual(@as(u8, 3), cpu.cycles_left);
 }
 
@@ -2386,7 +2386,7 @@ test "bvs taken" {
 }
 
 test "bvs taken (crossed page)" {
-    var bus = TestBus.setup(&.{ 0x70, 0xFF });
+    var bus = TestBus.setup(&.{ 0x70, 0xF1 });
     var cpu = Chip.init(bus.bus());
     cpu.powerOn();
 
@@ -2394,7 +2394,7 @@ test "bvs taken (crossed page)" {
 
     cpu.clock();
 
-    try std.testing.expectEqual(@as(u16, 0xF101), cpu.pc);
+    try std.testing.expectEqual(@as(u16, 0xEFF3), cpu.pc);
     try std.testing.expectEqual(@as(u8, 3), cpu.cycles_left);
 }
 

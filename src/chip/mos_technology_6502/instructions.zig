@@ -7,7 +7,7 @@ pub const AddressReturn = struct {
     cycle_request: bool,
     address: u16,
     accumulator: bool = false,
-    relative: u8 = 0x00,
+    relative: i8 = 0x00,
 };
 
 pub const micro = struct {
@@ -24,6 +24,23 @@ pub const micro = struct {
         const lo: u16 = cpu.read(address);
         const hi: u16 = cpu.read(address +% 1);
         return (hi << 8) | lo;
+    }
+    pub fn takeBranch(cpu: *Chip, ret: AddressReturn) void {
+        cpu.cycles_left += 1;
+        const rel: i16 = ret.relative;
+
+        var new_pc: u16 = cpu.pc;
+        if (rel < 0) {
+            new_pc -%= @abs(rel);
+        } else {
+            new_pc +%= @abs(rel);
+        }
+
+        if ((new_pc & 0xFF00) != (cpu.pc & 0xFF00)) {
+            cpu.cycles_left += 1;
+        }
+
+        cpu.pc = new_pc;
     }
 };
 
@@ -170,17 +187,13 @@ pub fn indirectY(cpu: *Chip) AddressReturn {
 }
 
 pub fn relative(cpu: *Chip) AddressReturn {
-    var offset = cpu.read(cpu.pc);
+    const offset = cpu.read(cpu.pc);
     cpu.pc += 1;
-
-    if (offset & 0x80 != 0) {
-        offset |= 0x00;
-    }
 
     return .{
         .cycle_request = false,
         .address = 0x00,
-        .relative = offset,
+        .relative = @bitCast(offset),
     };
 }
 
@@ -742,14 +755,7 @@ pub fn cpy(cpu: *Chip, ret: AddressReturn) bool {
 /// 0x90 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
 pub fn bcc(cpu: *Chip, ret: AddressReturn) bool {
     if (!cpu.status.isSet(.c)) {
-        cpu.cycles_left += 1;
-        const new_pc: u16 = cpu.pc + ret.relative;
-
-        if ((new_pc & 0xFF00) != (cpu.pc & 0xFF00)) {
-            cpu.cycles_left += 1;
-        }
-
-        cpu.pc = new_pc;
+        micro.takeBranch(cpu, ret);
     }
 
     return false;
@@ -760,14 +766,7 @@ pub fn bcc(cpu: *Chip, ret: AddressReturn) bool {
 /// 0xB0 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
 pub fn bcs(cpu: *Chip, ret: AddressReturn) bool {
     if (cpu.status.isSet(.c)) {
-        cpu.cycles_left += 1;
-        const new_pc: u16 = cpu.pc + ret.relative;
-
-        if ((new_pc & 0xFF00) != (cpu.pc & 0xFF00)) {
-            cpu.cycles_left += 1;
-        }
-
-        cpu.pc = new_pc;
+        micro.takeBranch(cpu, ret);
     }
 
     return false;
@@ -778,14 +777,7 @@ pub fn bcs(cpu: *Chip, ret: AddressReturn) bool {
 /// 0xF0 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
 pub fn beq(cpu: *Chip, ret: AddressReturn) bool {
     if (cpu.status.isSet(.z)) {
-        cpu.cycles_left += 1;
-        const new_pc: u16 = cpu.pc + ret.relative;
-
-        if ((new_pc & 0xFF00) != (cpu.pc & 0xFF00)) {
-            cpu.cycles_left += 1;
-        }
-
-        cpu.pc = new_pc;
+        micro.takeBranch(cpu, ret);
     }
 
     return false;
@@ -796,14 +788,7 @@ pub fn beq(cpu: *Chip, ret: AddressReturn) bool {
 /// 0xD0 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
 pub fn bne(cpu: *Chip, ret: AddressReturn) bool {
     if (!cpu.status.isSet(.z)) {
-        cpu.cycles_left += 1;
-        const new_pc: u16 = cpu.pc + ret.relative;
-
-        if ((new_pc & 0xFF00) != (cpu.pc & 0xFF00)) {
-            cpu.cycles_left += 1;
-        }
-
-        cpu.pc = new_pc;
+        micro.takeBranch(cpu, ret);
     }
 
     return false;
@@ -814,14 +799,7 @@ pub fn bne(cpu: *Chip, ret: AddressReturn) bool {
 /// 0x10 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
 pub fn bpl(cpu: *Chip, ret: AddressReturn) bool {
     if (!cpu.status.isSet(.n)) {
-        cpu.cycles_left += 1;
-        const new_pc: u16 = cpu.pc + ret.relative;
-
-        if ((new_pc & 0xFF00) != (cpu.pc & 0xFF00)) {
-            cpu.cycles_left += 1;
-        }
-
-        cpu.pc = new_pc;
+        micro.takeBranch(cpu, ret);
     }
 
     return false;
@@ -832,14 +810,7 @@ pub fn bpl(cpu: *Chip, ret: AddressReturn) bool {
 /// 0x30 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
 pub fn bmi(cpu: *Chip, ret: AddressReturn) bool {
     if (cpu.status.isSet(.n)) {
-        cpu.cycles_left += 1;
-        const new_pc: u16 = cpu.pc + ret.relative;
-
-        if ((new_pc & 0xFF00) != (cpu.pc & 0xFF00)) {
-            cpu.cycles_left += 1;
-        }
-
-        cpu.pc = new_pc;
+        micro.takeBranch(cpu, ret);
     }
 
     return false;
@@ -850,14 +821,7 @@ pub fn bmi(cpu: *Chip, ret: AddressReturn) bool {
 /// 0x50 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
 pub fn bvc(cpu: *Chip, ret: AddressReturn) bool {
     if (!cpu.status.isSet(.v)) {
-        cpu.cycles_left += 1;
-        const new_pc: u16 = cpu.pc + ret.relative;
-
-        if ((new_pc & 0xFF00) != (cpu.pc & 0xFF00)) {
-            cpu.cycles_left += 1;
-        }
-
-        cpu.pc = new_pc;
+        micro.takeBranch(cpu, ret);
     }
 
     return false;
@@ -868,14 +832,7 @@ pub fn bvc(cpu: *Chip, ret: AddressReturn) bool {
 /// 0x70 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
 pub fn bvs(cpu: *Chip, ret: AddressReturn) bool {
     if (cpu.status.isSet(.v)) {
-        cpu.cycles_left += 1;
-        const new_pc: u16 = cpu.pc + ret.relative;
-
-        if ((new_pc & 0xFF00) != (cpu.pc & 0xFF00)) {
-            cpu.cycles_left += 1;
-        }
-
-        cpu.pc = new_pc;
+        micro.takeBranch(cpu, ret);
     }
 
     return false;
