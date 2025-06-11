@@ -338,6 +338,10 @@ pub fn dec(self: *Assembler, mode: Mode, args: Arg) void {
     }
 }
 
+pub fn inx(self: *Assembler) void {
+    self.write(0xE8);
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
