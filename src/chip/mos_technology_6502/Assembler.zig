@@ -600,6 +600,47 @@ pub fn bit(self: *Assembler, mode: Mode, args: Arg) void {
     }
 }
 
+pub fn cmp(self: *Assembler, mode: Mode, args: Arg) void {
+    switch (mode) {
+        .immediate => {
+            self.write(0xC9);
+            self.write(args.first);
+        },
+        .zero_page => {
+            self.write(0xC5);
+            self.write(args.first);
+        },
+        .zero_page_x => {
+            self.write(0xD5);
+            self.write(args.first);
+        },
+        .absolute => {
+            self.write(0xCD);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .absolute_x => {
+            self.write(0xDD);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .absolute_y => {
+            self.write(0xD9);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .indirect_x => {
+            self.write(0xC1);
+            self.write(args.first);
+        },
+        .indirect_y => {
+            self.write(0xD1);
+            self.write(args.first);
+        },
+        else => {},
+    }
+}
+
 fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
