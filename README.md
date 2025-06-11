@@ -69,14 +69,14 @@ zig build
 | CMP |:white_check_mark:|:white_check_mark:|
 | CPX |:white_check_mark:|:white_check_mark:|
 | CPY |:white_check_mark:|:white_check_mark:|
-| BCC |:x:               |:x:               |
-| BCS |:x:               |:x:               |
-| BEQ |:x:               |:x:               |
-| BNE |:x:               |:x:               |
-| BPL |:x:               |:x:               |
-| BMI |:x:               |:x:               |
-| BVC |:x:               |:x:               |
-| BVS |:x:               |:x:               |
+| BCC |:white_check_mark:|:x:               |
+| BCS |:white_check_mark:|:x:               |
+| BEQ |:white_check_mark:|:x:               |
+| BNE |:white_check_mark:|:x:               |
+| BPL |:white_check_mark:|:x:               |
+| BMI |:white_check_mark:|:x:               |
+| BVC |:white_check_mark:|:x:               |
+| BVS |:white_check_mark:|:x:               |
 | JMP |:white_check_mark:|:x:               |
 | JSR |:white_check_mark:|:x:               |
 | RTS |:white_check_mark:|:x:               |
