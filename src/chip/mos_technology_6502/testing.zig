@@ -2125,6 +2125,45 @@ test "bcc taken (crossed page)" {
     try std.testing.expectEqual(@as(u8, 3), cpu.cycles_left);
 }
 
+test "bcs not taken" {
+    var bus = TestBus.setup(&.{ 0xB0, 0x10 }); // BCC + $10
+    var cpu = Chip.init(bus.bus());
+    cpu.powerOn();
+
+    cpu.status.set(.c, false);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u16, 0xF002), cpu.pc); // skips the branch
+    try std.testing.expectEqual(@as(u8, 1), cpu.cycles_left); // 2 cycles used
+}
+
+test "bcs taken" {
+    var bus = TestBus.setup(&.{ 0xB0, 0x10 }); // BCC + $10
+    var cpu = Chip.init(bus.bus());
+    cpu.powerOn();
+
+    cpu.status.set(.c, true);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u16, 0xF012), cpu.pc);
+    try std.testing.expectEqual(@as(u8, 2), cpu.cycles_left);
+}
+
+test "bcs taken (crossed page)" {
+    var bus = TestBus.setup(&.{ 0xB0, 0xFF }); // BCC + $10
+    var cpu = Chip.init(bus.bus());
+    cpu.powerOn();
+
+    cpu.status.set(.c, true);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u16, 0xF101), cpu.pc);
+    try std.testing.expectEqual(@as(u8, 3), cpu.cycles_left);
+}
+
 test "jmp absolute" {
     // JMP $5025
     var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });
