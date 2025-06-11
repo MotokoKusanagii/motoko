@@ -7,12 +7,30 @@ const Assembler = @This();
 
 bus: Bus,
 ptr: u16,
+labels: std.StringHashMap(u16),
+allocator: std.mem.Allocator,
 
-pub fn init(bus: Bus, start: u16) Assembler {
+pub fn init(bus: Bus, start: u16, allocator: std.mem.Allocator) Assembler {
     return .{
         .bus = bus,
         .ptr = start,
+        .labels = std.StringHashMap(u16).init(allocator),
+        .allocator = allocator,
     };
+}
+
+pub fn deinit(self: *Assembler) void {
+    self.labels.deinit();
+}
+
+/// Mark the current location of the pointer for branch instructions
+/// Note: If the instructions is farther than the i8 limit, then ... uhh
+/// it will do nothing for now but please don't do that
+/// TODO: With the current system you can only jump back in code
+/// please fix
+pub fn label(self: *Assembler, name: []const u8) !void {
+    std.debug.assert(!self.labels.contains(name));
+    try self.labels.put(name, self.ptr);
 }
 
 pub const Arg = struct {
@@ -677,6 +695,47 @@ pub fn cpy(self: *Assembler, mode: Mode, args: Arg) void {
         },
         else => {},
     }
+}
+
+pub fn beq(self: *Assembler, name: []const u8) void {
+    const target = self.labels.get(name) orelse {
+        @panic("label not found");
+    };
+
+    self.write(0xF0);
+    self.write(self.calc_offset(target));
+}
+
+pub fn bne(self: *Assembler, name: []const u8) void {
+    const target = self.labels.get(name) orelse {
+        @panic("label not found");
+    };
+
+    self.write(0xD0);
+    self.write(self.calc_offset(target));
+}
+
+pub fn jmp_label(self: *Assembler, name: []const u8) void {
+    const target = self.labels.get(name) orelse {
+        @panic("label not found");
+    };
+
+    self.write(0x4C);
+    self.write(@truncate(target));
+    self.write(@truncate(target >> 8));
+}
+
+fn calc_offset(self: Assembler, target: u16) u8 {
+    var offset: u16 = 0x00;
+    if (self.ptr > target) {
+        offset = (self.ptr) - target;
+        offset = ~offset;
+    } else {
+        offset = target - (self.ptr);
+    }
+
+    std.debug.print("offset: {X}\n", .{offset});
+    return @truncate(offset);
 }
 
 fn write(self: *Assembler, value: u8) void {

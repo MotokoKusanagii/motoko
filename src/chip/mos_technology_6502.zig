@@ -101,7 +101,6 @@ pub const Chip = struct {
 
             self.cycles_left += if (cycle_request) 1 else 0;
         }
-
         self.cycles_left -= 1;
     }
 
@@ -149,6 +148,14 @@ pub fn bufPrintCurInstr(chip: Chip, buf: []u8) ![]u8 {
         .cmp => "CMP",
         .cpx => "CPX",
         .cpy => "CPY",
+        .bcc => "BCC",
+        .bcs => "BCS",
+        .beq => "BEQ",
+        .bne => "BNE",
+        .bpl => "BPL",
+        .bmi => "BMI",
+        .bvc => "BVC",
+        .bvs => "BVS",
         .jmp => "JMP",
         .jsr => "JSR",
         .rts => "RTS",
@@ -192,7 +199,7 @@ pub fn bufPrintCurInstr(chip: Chip, buf: []u8) ![]u8 {
         .absolute => blk: {
             const lo = chip.read(chip.pc + 1);
             const hi = chip.read(chip.pc + 2);
-            break :blk try print(buf, "{s} ${X}{X}", .{ name, hi, lo });
+            break :blk try print(buf, "{s} ${X:0>2}{X:0>2}", .{ name, hi, lo });
         },
         .absolute_x => blk: {
             const lo = chip.read(chip.pc + 1);
@@ -202,7 +209,7 @@ pub fn bufPrintCurInstr(chip: Chip, buf: []u8) ![]u8 {
         .absolute_y => blk: {
             const lo = chip.read(chip.pc + 1);
             const hi = chip.read(chip.pc + 2);
-            break :blk try print(buf, "{s} ${X}{X},Y", .{ name, hi, lo });
+            break :blk try print(buf, "{s} ${X:0>2}{X:0>2},Y", .{ name, hi, lo });
         },
         .indirect => blk: {
             const lo = chip.read(chip.pc + 1);
@@ -216,6 +223,10 @@ pub fn bufPrintCurInstr(chip: Chip, buf: []u8) ![]u8 {
         .indirect_y => blk: {
             const value = chip.read(chip.pc + 1);
             break :blk try print(buf, "{s} (${X}),Y", .{ name, value });
+        },
+        .relative => blk: {
+            const value = chip.read(chip.pc + 1);
+            break :blk try print(buf, "{s} ${X:0>2}", .{ name, value });
         },
         else => try print(buf, "{s}: no format", .{name}),
     };
