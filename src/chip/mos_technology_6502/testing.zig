@@ -2178,7 +2178,7 @@ test "beq not taken" {
 }
 
 test "beq taken" {
-    var bus = TestBus.setup(&.{ 0xF0, 0x10 }); // BCC + $10
+    var bus = TestBus.setup(&.{ 0xF0, 0x10 });
     var cpu = Chip.init(bus.bus());
     cpu.powerOn();
 
@@ -2191,11 +2191,50 @@ test "beq taken" {
 }
 
 test "beq taken (crossed page)" {
-    var bus = TestBus.setup(&.{ 0xF0, 0xFF }); // BCC + $10
+    var bus = TestBus.setup(&.{ 0xF0, 0xFF });
     var cpu = Chip.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.z, true);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u16, 0xF101), cpu.pc);
+    try std.testing.expectEqual(@as(u8, 3), cpu.cycles_left);
+}
+
+test "bne not taken" {
+    var bus = TestBus.setup(&.{ 0xD0, 0x10 });
+    var cpu = Chip.init(bus.bus());
+    cpu.powerOn();
+
+    cpu.status.set(.z, true);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u16, 0xF002), cpu.pc); // skips the branch
+    try std.testing.expectEqual(@as(u8, 1), cpu.cycles_left); // 2 cycles used
+}
+
+test "bne taken" {
+    var bus = TestBus.setup(&.{ 0xD0, 0x10 });
+    var cpu = Chip.init(bus.bus());
+    cpu.powerOn();
+
+    cpu.status.set(.z, false);
+
+    cpu.clock();
+
+    try std.testing.expectEqual(@as(u16, 0xF012), cpu.pc);
+    try std.testing.expectEqual(@as(u8, 2), cpu.cycles_left);
+}
+
+test "bne taken (crossed page)" {
+    var bus = TestBus.setup(&.{ 0xD0, 0xFF });
+    var cpu = Chip.init(bus.bus());
+    cpu.powerOn();
+
+    cpu.status.set(.z, false);
 
     cpu.clock();
 
