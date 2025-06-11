@@ -50,6 +50,7 @@ pub const Type = enum {
     beq,
     bne,
     bpl,
+    bmi,
     // Jump
     jmp,
     jsr,
@@ -146,6 +147,7 @@ pub fn run(self: Instruction, cpu: *Chip) bool {
         .beq => instructions.beq(cpu, address_return),
         .bne => instructions.bne(cpu, address_return),
         .bpl => instructions.bpl(cpu, address_return),
+        .bmi => instructions.bmi(cpu, address_return),
         .jmp => instructions.jmp(cpu, address_return),
         .jsr => instructions.jsr(cpu, address_return),
         .rts => instructions.rts(cpu, address_return),
@@ -310,6 +312,11 @@ pub fn decode(opcode: u8) Instruction {
             .type = .rol,
             .mode = .absolute,
             .cycles = 6,
+        },
+        0x30 => .{
+            .type = .bmi,
+            .mode = .relative,
+            .cycles = 2,
         },
         0x31 => .{
             .type = .@"and",
