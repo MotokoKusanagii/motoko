@@ -47,8 +47,8 @@ pub fn main() !void {
     try asem.label("jump");
     asem.inc(.zero_page, .{ .first = 0x10 });
     asem.cmp(.zero_page, .{ .first = 0x10 });
-    asem.bne("jump");
-    asem.jmp_label("reset");
+    try asem.bne("jump");
+    try asem.jmp_label("reset");
     asem.deinit();
 
     var chip = mos6502.Chip.init(bus.bus());
