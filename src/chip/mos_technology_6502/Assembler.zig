@@ -742,6 +742,28 @@ pub fn cpy(self: *Assembler, mode: Mode, args: Arg) void {
     }
 }
 
+pub fn bcc(self: *Assembler, name: []const u8) !void {
+    self.write(0x90);
+
+    const target = self.labels.get(name) orelse blk: {
+        try make_request(self, name, .relative);
+        break :blk 0x000;
+    };
+
+    self.write(calc_offset(self.ptr, target));
+}
+
+pub fn bcs(self: *Assembler, name: []const u8) !void {
+    self.write(0xB0);
+
+    const target = self.labels.get(name) orelse blk: {
+        try make_request(self, name, .relative);
+        break :blk 0x000;
+    };
+
+    self.write(calc_offset(self.ptr, target));
+}
+
 pub fn beq(self: *Assembler, name: []const u8) !void {
     self.write(0xF0);
 
@@ -764,6 +786,65 @@ pub fn bne(self: *Assembler, name: []const u8) !void {
     self.write(calc_offset(self.ptr, target));
 }
 
+pub fn bpl(self: *Assembler, name: []const u8) !void {
+    self.write(0x10);
+
+    const target = self.labels.get(name) orelse blk: {
+        try make_request(self, name, .relative);
+        break :blk 0x000;
+    };
+
+    self.write(calc_offset(self.ptr, target));
+}
+
+pub fn bmi(self: *Assembler, name: []const u8) !void {
+    self.write(0x30);
+
+    const target = self.labels.get(name) orelse blk: {
+        try make_request(self, name, .relative);
+        break :blk 0x000;
+    };
+
+    self.write(calc_offset(self.ptr, target));
+}
+
+pub fn bvc(self: *Assembler, name: []const u8) !void {
+    self.write(0x50);
+
+    const target = self.labels.get(name) orelse blk: {
+        try make_request(self, name, .relative);
+        break :blk 0x000;
+    };
+
+    self.write(calc_offset(self.ptr, target));
+}
+
+pub fn bvs(self: *Assembler, name: []const u8) !void {
+    self.write(0x70);
+
+    const target = self.labels.get(name) orelse blk: {
+        try make_request(self, name, .relative);
+        break :blk 0x000;
+    };
+
+    self.write(calc_offset(self.ptr, target));
+}
+
+pub fn jmp(self: *Assembler, mode: Mode, args: Arg) void {
+    switch (mode) {
+        .absolute => {
+            self.write(0x4C);
+            self.write(args.first);
+            self.write(args.second);
+        },
+        .indirect => {
+            self.write(0x6C);
+            self.write(args.first);
+            self.write(args.second);
+        },
+    }
+}
+
 pub fn jmp_label(self: *Assembler, name: []const u8) !void {
     self.write(0x4C);
 
@@ -776,7 +857,94 @@ pub fn jmp_label(self: *Assembler, name: []const u8) !void {
     self.write(@truncate(target >> 8));
 }
 
-fn write(self: *Assembler, value: u8) void {
+pub fn jsr(self: *Assembler, args: Arg) void {
+    self.write(0x20);
+    self.write(args.first);
+    self.write(args.second);
+}
+
+pub fn jsr_label(self: *Assembler, name: []const u8) !void {
+    self.write(0x20);
+
+    const target = self.labels.get(name) orelse blk: {
+        try make_request(self, name, .absolute);
+        break :blk 0x0000;
+    };
+
+    self.write(@truncate(target));
+    self.write(@truncate(target >> 8));
+}
+
+pub fn rts(self: *Assembler) void {
+    self.write(0x60);
+}
+
+pub fn brk(self: *Assembler) void {
+    self.write(0x00);
+    self.write(0x00);
+}
+
+pub fn rti(self: *Assembler) void {
+    self.write(0x40);
+}
+
+pub fn pha(self: *Assembler) void {
+    self.write(0x48);
+}
+
+pub fn pla(self: *Assembler) void {
+    self.write(0x68);
+}
+
+pub fn php(self: *Assembler) void {
+    self.write(0x08);
+}
+
+pub fn plp(self: *Assembler) void {
+    self.write(0x28);
+}
+
+pub fn txs(self: *Assembler) void {
+    self.write(0x98);
+}
+
+pub fn tsx(self: *Assembler) void {
+    self.write(0xBA);
+}
+
+pub fn clc(self: *Assembler) void {
+    self.write(0x18);
+}
+
+pub fn sec(self: *Assembler) void {
+    self.write(0x38);
+}
+
+pub fn cli(self: *Assembler) void {
+    self.write(0x58);
+}
+
+pub fn sei(self: *Assembler) void {
+    self.write(0x78);
+}
+
+pub fn cld(self: *Assembler) void {
+    self.write(0xD8);
+}
+
+pub fn sed(self: *Assembler) void {
+    self.write(0xF8);
+}
+
+pub fn clv(self: *Assembler) void {
+    self.write(0xB8);
+}
+
+pub fn nop(self: *Assembler) void {
+    self.write(0xEA);
+}
+
+pub fn write(self: *Assembler, value: u8) void {
     self.bus.write(self.ptr, value);
     self.ptr += 1;
 }

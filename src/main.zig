@@ -41,14 +41,17 @@ pub fn main() !void {
     var bus = mos6502.TestBus.setup(&.{});
 
     var asem = mos6502.Assembler.init(bus.bus(), 0xF000, allocator);
-    try asem.label("reset");
-    asem.sta(.zero_page, .{ .first = 0x10 });
     asem.lda(.immediate, .{ .first = 0x05 });
-    try asem.label("jump");
-    asem.inc(.zero_page, .{ .first = 0x10 });
-    asem.cmp(.zero_page, .{ .first = 0x10 });
-    try asem.bne("jump");
-    try asem.jmp_label("reset");
+    try asem.jsr_label("subroutine");
+    asem.lda(.immediate, .{ .first = 0xBB });
+
+    inline for (0..5) |_| {
+        asem.nop();
+    }
+
+    try asem.label("subroutine");
+    asem.lda(.immediate, .{ .first = 0xAA });
+    asem.rts();
     asem.deinit();
 
     var chip = mos6502.Chip.init(bus.bus());
@@ -81,7 +84,6 @@ pub fn main() !void {
             gui.text("(PC): {X}", .{chip.read(chip.pc)});
             gui.text("Status: {b:0>8}", .{chip.status.data});
             gui.text("cycles left: {x}", .{chip.cycles_left});
-            gui.text("0x:0010: {d}", .{bus.data[0x0010]});
             gui.spacing();
 
             var buffer: [30]u8 = undefined;
