@@ -1,5 +1,6 @@
 const std = @import("std");
 pub const instructions = @import("mos_technology_6502/instructions.zig");
+pub const parser = @import("mos_technology_6502/parser.zig");
 pub const Instruction = @import("mos_technology_6502/Instruction.zig");
 pub const Bus = @import("mos_technology_6502/Bus.zig");
 pub const TestBus = @import("mos_technology_6502/testing.zig").TestBus;
@@ -182,19 +183,19 @@ pub fn bufPrintCurInstr(chip: Chip, buf: []u8) ![]u8 {
         .accumulator, .implied => try print(buf, "{s}", .{name}),
         .immediate => blk: {
             const value = chip.read(chip.pc + 1);
-            break :blk try print(buf, "{s} #${X}", .{ name, value });
+            break :blk try print(buf, "{s} #${X:0>2}", .{ name, value });
         },
         .zero_page => blk: {
             const value = chip.read(chip.pc + 1);
-            break :blk try print(buf, "{s} ${X}", .{ name, value });
+            break :blk try print(buf, "{s} ${X:0>2}", .{ name, value });
         },
         .zero_page_x => blk: {
             const value = chip.read(chip.pc + 1);
-            break :blk try print(buf, "{s} ${X},X", .{ name, value });
+            break :blk try print(buf, "{s} ${X:0>2},X", .{ name, value });
         },
         .zero_page_y => blk: {
             const value = chip.read(chip.pc + 1);
-            break :blk try print(buf, "{s} ${X},Y", .{ name, value });
+            break :blk try print(buf, "{s} ${X:0>2},Y", .{ name, value });
         },
         .absolute => blk: {
             const lo = chip.read(chip.pc + 1);
@@ -204,7 +205,7 @@ pub fn bufPrintCurInstr(chip: Chip, buf: []u8) ![]u8 {
         .absolute_x => blk: {
             const lo = chip.read(chip.pc + 1);
             const hi = chip.read(chip.pc + 2);
-            break :blk try print(buf, "{s} ${X}{X},X", .{ name, hi, lo });
+            break :blk try print(buf, "{s} ${X:0>2}{X:0>2},X", .{ name, hi, lo });
         },
         .absolute_y => blk: {
             const lo = chip.read(chip.pc + 1);

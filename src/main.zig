@@ -4,6 +4,7 @@ const opengl = @import("zopengl");
 const gui = @import("zgui");
 
 const mos6502 = @import("mos6502");
+const asm_test = @embedFile("test.s");
 
 pub fn main() !void {
     try glfw.init();
@@ -40,19 +41,7 @@ pub fn main() !void {
 
     var bus = mos6502.TestBus.setup(&.{});
 
-    var asem = mos6502.Assembler.init(bus.bus(), 0xF000, allocator);
-    asem.lda(.immediate, .{ .first = 0x05 });
-    try asem.jsr_label("subroutine");
-    asem.lda(.immediate, .{ .first = 0xBB });
-
-    inline for (0..5) |_| {
-        asem.nop();
-    }
-
-    try asem.label("subroutine");
-    asem.lda(.immediate, .{ .first = 0xAA });
-    asem.rts();
-    asem.deinit();
+    try mos6502.parser.parse(allocator, asm_test, bus.bus());
 
     var chip = mos6502.Chip.init(bus.bus());
     chip.powerOn();
