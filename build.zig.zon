@@ -2,7 +2,7 @@
     .name = .motoko,
     .version = "0.0.0",
     .fingerprint = 0xe21828c890644328, // Changing this has security and trust implications.
-    .minimum_zig_version = "0.14.0",
+    .minimum_zig_version = "0.14.1",
     .dependencies = .{
         .zgui = .{
             .url = "git+https://github.com/zig-gamedev/zgui.git#21dcc288ac5ee70b1fca789d53a06d5c49d51e5e",
