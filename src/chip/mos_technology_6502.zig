@@ -105,6 +105,16 @@ pub const Chip = struct {
         self.cycles_left -= 1;
     }
 
+    pub fn nmi(self: *Chip) void {
+        _ = self;
+        @panic("TODO: implement nmi()");
+    }
+
+    pub fn irq(self: *Chip) void {
+        _ = self;
+        @panic("TODO: implement irq()");
+    }
+
     pub fn write(self: *Chip, addr: u16, value: u8) void {
         self.bus.write(addr, value);
     }
