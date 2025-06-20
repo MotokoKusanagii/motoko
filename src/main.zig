@@ -19,7 +19,7 @@ pub fn main() !void {
     glfw.windowHint(.client_api, .opengl_api);
     glfw.windowHint(.doublebuffer, true);
 
-    const window = try glfw.Window.create(800, 600, "Motoko Emulator", null);
+    const window = try glfw.Window.create(1200, 800, "Motoko Emulator", null);
     defer window.destroy();
 
     glfw.makeContextCurrent(window);
@@ -38,6 +38,8 @@ pub fn main() !void {
 
     gui.backend.init(window);
     defer gui.backend.deinit();
+
+    gui.io.setConfigFlags(.{ .dock_enable = true });
 
     var bus = mos6502.TestBus.setup(&.{});
 
@@ -79,6 +81,9 @@ pub fn main() !void {
             gui.text("Instruction: {s}", .{try mos6502.bufPrintCurInstr(chip, &buffer)});
         }
         gui.end();
+
+        var show = true;
+        gui.showDemoWindow(&show);
 
         gui.backend.draw();
 
