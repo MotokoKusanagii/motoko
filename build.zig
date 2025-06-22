@@ -8,7 +8,10 @@ const chips = [_]struct {
     name: []const u8,
     path: []const u8,
 }{
-    .{ .name = "mos6502", .path = "src/chip/mos_technology_6502.zig" },
+    .{
+        .name = "mos_technology_6502.zig",
+        .path = "chip/mos_technology_6502.zig",
+    },
 };
 
 pub fn build(b: *std.Build) void {

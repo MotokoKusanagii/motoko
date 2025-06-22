@@ -3,7 +3,7 @@ const glfw = @import("zglfw");
 const opengl = @import("zopengl");
 const gui = @import("zgui");
 
-const mos6502 = @import("mos6502");
+const mos6502 = @import("mos_technology_6502.zig");
 const asm_test = @embedFile("test.s");
 
 pub fn main() !void {
