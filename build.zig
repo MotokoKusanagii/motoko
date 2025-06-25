@@ -31,14 +31,23 @@ pub fn build(b: *std.Build) void {
         .target = target,
     });
 
-    const exe_mod = b.createModule(.{
-        .root_source_file = b.path("src/main.zig"),
+    const engine_mod = b.createModule(.{
+        .root_source_file = b.path("engine/Engine.zig"),
         .target = target,
         .optimize = optimize,
         .imports = &.{
             .{ .name = "zopengl", .module = zopengl.module("root") },
             .{ .name = "zgui", .module = zgui.module("root") },
             .{ .name = "zglfw", .module = zglfw.module("root") },
+        },
+    });
+
+    const exe_mod = b.createModule(.{
+        .root_source_file = b.path("src/main.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "Engine", .module = engine_mod },
         },
     });
 
