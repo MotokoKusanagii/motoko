@@ -14,17 +14,25 @@ width: i32,
 height: i32,
 title: [:0]const u8,
 
-pub fn init(alloc: std.mem.Allocator) !Engine {
+pub const WindowOptions = struct {
+    width: i32,
+    height: i32,
+    title: [:0]const u8,
+};
+
+pub fn init(alloc: std.mem.Allocator, options: WindowOptions) !Engine {
+    log.info("Initialize", .{});
     return .{
         .alloc = alloc,
         .dispatcher = try Dispatcher.init(alloc),
-        .width = 0,
-        .height = 0,
-        .title = "Application",
+        .width = options.width,
+        .height = options.height,
+        .title = options.title,
     };
 }
 
 pub fn deinit(self: *Engine) void {
+    log.info("Deinitialize", .{});
     self.dispatcher.deinit();
 }
 
@@ -65,18 +73,8 @@ pub fn run(self: Engine) !void {
 
         window.swapBuffers();
     }
-}
-
-pub const WindowOptions = struct {
-    width: i32,
-    height: i32,
-    title: [:0]const u8,
-};
-
-pub fn windowOptions(self: *Engine, options: WindowOptions) void {
-    self.width = options.width;
-    self.height = options.height;
-    self.title = options.title;
+    log.info("Shutting down", .{});
+    self.dispatcher.dispatch(.shutdown);
 }
 
 pub const Event = enum {

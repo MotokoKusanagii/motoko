@@ -41,20 +41,19 @@ pub fn main() !void {
         }
     }
 
-    const alloc = da.allocator();
-
-    var engine: Engine = try .init(alloc);
-    defer engine.deinit();
-
     var data: Data = .{
         .int = 42,
     };
 
-    try engine.registerEvent(.boot, boot, &data);
-    engine.windowOptions(.{
-        .width = 1200,
-        .height = 1000,
+    const alloc = da.allocator();
+
+    var engine: Engine = try .init(alloc, .{
+        .width = 800,
+        .height = 600,
         .title = "Motoko Emulator",
     });
+    defer engine.deinit();
+
+    try engine.registerEvent(.boot, boot, &data);
     try engine.run();
 }
