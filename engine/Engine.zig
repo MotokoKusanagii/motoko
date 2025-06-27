@@ -69,6 +69,8 @@ pub fn run(self: Engine) !void {
     while (!window.shouldClose()) {
         glfw.pollEvents();
 
+        self.dispatcher.dispatch(.tick);
+
         gl.clearBufferfv(gl.COLOR, 0, &[_]f32{ 0.102, 0.106, 0.149, 1.0 });
 
         window.swapBuffers();
@@ -79,9 +81,13 @@ pub fn run(self: Engine) !void {
 
 pub const Event = enum {
     boot,
+    shutdown,
+    tick,
     pub fn Signature(comptime event: Event) type {
         return switch (event) {
             .boot => *const fn (data: *anyopaque) void,
+            .shutdown => *const fn (data: *anyopaque) void,
+            .tick => *const fn (data: *anyopaque) void,
         };
     }
 };
@@ -89,25 +95,27 @@ pub const Event = enum {
 pub const Dispatcher = struct {
     alloc: std.mem.Allocator,
     boot: std.ArrayList(Pair(.boot)),
+    shutdown: std.ArrayList(Pair(.shutdown)),
+    tick: std.ArrayList(Pair(.tick)),
 
     pub fn init(alloc: std.mem.Allocator) !Dispatcher {
         return .{
             .alloc = alloc,
             .boot = std.ArrayList(Pair(.boot)).init(alloc),
+            .shutdown = std.ArrayList(Pair(.shutdown)).init(alloc),
+            .tick = std.ArrayList(Pair(.tick)).init(alloc),
         };
     }
 
     pub fn deinit(self: *Dispatcher) void {
         self.boot.deinit();
+        self.shutdown.deinit();
+        self.tick.deinit();
     }
 
     pub fn dispatch(self: Dispatcher, comptime event: Event) void {
-        switch (event) {
-            .boot => {
-                for (self.boot.items) |pair| {
-                    pair.func(pair.data);
-                }
-            },
+        for (@field(self, @tagName(event)).items) |pair| {
+            pair.func(pair.data);
         }
     }
 
@@ -125,12 +133,8 @@ pub fn registerEvent(
     func: Event.Signature(event),
     data: *anyopaque,
 ) !void {
-    switch (event) {
-        .boot => {
-            try self.dispatcher.boot.append(Dispatcher.Pair(.boot){
-                .func = func,
-                .data = data,
-            });
-        },
-    }
+    try @field(self.dispatcher, @tagName(event)).append(Dispatcher.Pair(event){
+        .func = func,
+        .data = data,
+    });
 }
