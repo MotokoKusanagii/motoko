@@ -1,5 +1,8 @@
 const std = @import("std");
 const Engine = @import("Engine");
+const dvui = @import("dvui");
+
+const onDraw = @import("ui.zig").onDraw;
 
 pub const std_options: std.Options = .{
     .log_level = .info,
@@ -23,16 +26,6 @@ pub fn logFn(
 
 const log = std.log.scoped(.app);
 
-const Data = struct {
-    int: u32,
-};
-
-fn boot(data_opaque: *anyopaque) void {
-    const data: *Data = @ptrCast(@alignCast(data_opaque));
-    log.info("Boot was called with value: {d}", .{data.int});
-    data.int = 30;
-}
-
 pub fn main() !void {
     var da = std.heap.DebugAllocator(.{}).init;
     defer {
@@ -40,10 +33,6 @@ pub fn main() !void {
             log.err("Program exited with leaks", .{});
         }
     }
-
-    var data: Data = .{
-        .int = 42,
-    };
 
     const alloc = da.allocator();
 
@@ -54,6 +43,6 @@ pub fn main() !void {
     });
     defer engine.deinit();
 
-    try engine.registerEvent(.boot, boot, &data);
+    try engine.registerEvent(.draw, onDraw, null);
     try engine.run();
 }

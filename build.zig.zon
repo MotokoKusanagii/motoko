@@ -16,6 +16,10 @@
             .url = "git+https://github.com/zig-gamedev/zopengl.git#d264cab3c4dd3734a79b102b912880a497427133",
             .hash = "zopengl-0.6.0-dev-5-tnz5dlCADYpffQdOFMtwLbB-w7caLobHCoUg_uCdGU",
         },
+        .dvui = .{
+            .url = "git+https://github.com/david-vanderson/dvui.git#a2648f659cd0466b670687f97519ec55f5cc017c",
+            .hash = "dvui-0.2.0-AQFJmUNnzwCkrxF_uwqp25L14Qr2fOaIdVHzYNJRkM4n",
+        },
     },
     .paths = .{
         "build.zig",
