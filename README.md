@@ -24,7 +24,7 @@ zig build
 
 ## Libraries
 
-- [zig-gamedev](https://github.com/zig-gamedev/zig-gamedev)
+- [dvui](https://github.com/david-vanderson/dvui)
 
 ## License
 
