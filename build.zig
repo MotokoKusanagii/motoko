@@ -24,24 +24,12 @@ pub fn build(b: *std.Build) void {
         .backend = .sdl3,
     });
 
-    const zopengl = b.dependency("zopengl", .{});
-
-    const engine_mod = b.createModule(.{
-        .root_source_file = b.path("engine/Engine.zig"),
-        .target = target,
-        .optimize = optimize,
-        .imports = &.{
-            .{ .name = "zopengl", .module = zopengl.module("root") },
-            .{ .name = "dvui", .module = dvui.module("dvui_sdl3") },
-        },
-    });
-
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
         .imports = &.{
-            .{ .name = "Engine", .module = engine_mod },
+            .{ .name = "dvui", .module = dvui.module("dvui_sdl3") },
         },
     });
 
