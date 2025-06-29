@@ -1,5 +1,5 @@
 const std = @import("std");
-const Engine = @import("Engine");
+const Engine = @import("Engine.zig");
 const dvui = @import("dvui");
 
 const onDraw = @import("ui.zig").onDraw;
