@@ -2,7 +2,7 @@ const std = @import("std");
 const Engine = @import("Engine.zig");
 const dvui = @import("dvui");
 
-const onDraw = @import("ui.zig").onDraw;
+const ui = @import("ui.zig");
 
 pub const std_options: std.Options = .{
     .log_level = .info,
@@ -43,6 +43,7 @@ pub fn main() !void {
     });
     defer engine.deinit();
 
-    try engine.registerEvent(.draw, onDraw, null);
+    try engine.registerEvent(.dvui_setup, ui.onDvuiSetup, null);
+    try engine.registerEvent(.draw, ui.onDraw, null);
     try engine.run();
 }
