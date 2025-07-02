@@ -4,12 +4,9 @@
     .fingerprint = 0xe21828c890644328, // Changing this has security and trust implications.
     .minimum_zig_version = "0.14.1",
     .dependencies = .{
-        // .dvui = .{
-        //     .url = "git+https://github.com/david-vanderson/dvui.git#a2648f659cd0466b670687f97519ec55f5cc017c",
-        //     .hash = "dvui-0.2.0-AQFJmUNnzwCkrxF_uwqp25L14Qr2fOaIdVHzYNJRkM4n",
-        // },
         .dvui = .{
-            .path = "../contributions/dvui",
+            .url = "git+https://github.com/david-vanderson/dvui.git#e7439763a95429da4b476d73c01287a1fd623a29",
+            .hash = "dvui-0.2.0-AQFJmbN0zwBBlG8RPSlldee0YYg9C_nGaWYopoVwT6pv",
         },
     },
     .paths = .{
