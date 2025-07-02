@@ -2,7 +2,7 @@ const std = @import("std");
 const Engine = @import("Engine.zig");
 const dvui = @import("dvui");
 
-const ui = @import("ui.zig");
+const Ui = @import("Ui.zig");
 
 pub const std_options: std.Options = .{
     .log_level = .info,
@@ -36,6 +36,8 @@ pub fn main() !void {
 
     const alloc = da.allocator();
 
+    var ui: Ui = undefined;
+
     var engine: Engine = try .init(alloc, .{
         .width = 800,
         .height = 600,
@@ -43,7 +45,8 @@ pub fn main() !void {
     });
     defer engine.deinit();
 
-    try engine.registerEvent(.dvui_setup, ui.onDvuiSetup, null);
-    try engine.registerEvent(.draw, ui.onDraw, null);
+    try engine.registerEvent(.dvui_init, Ui.onDvuiInit, &ui);
+    try engine.registerEvent(.draw, Ui.onDraw, &ui);
+    try engine.registerEvent(.dvui_deinit, Ui.onDvuiDeinit, &ui);
     try engine.run();
 }
