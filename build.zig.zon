@@ -5,8 +5,8 @@
     .minimum_zig_version = "0.14.1",
     .dependencies = .{
         .dvui = .{
-            .url = "git+https://github.com/david-vanderson/dvui.git#5bf788a2a8484cd2f89365797559a8fd94f5a506",
-            .hash = "dvui-0.2.0-AQFJmVYC0ABrKx7Yq08uuhn6-yryqx79KJ7J7vprQsUw",
+            .url = "git+https://github.com/david-vanderson/dvui.git#e07170d85d4d69b326ac2dac76273aba25c500ae",
+            .hash = "dvui-0.2.0-AQFJmQAv0AB4_k84SuBW06Ar0ynLuhpHWy7uVeEfrVMI",
         },
     },
     .paths = .{
