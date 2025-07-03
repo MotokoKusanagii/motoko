@@ -36,8 +36,6 @@ pub fn main() !void {
 
     const alloc = da.allocator();
 
-    var ui: Ui = undefined;
-
     var engine: Engine = try .init(alloc, .{
         .width = 800,
         .height = 600,
@@ -45,8 +43,7 @@ pub fn main() !void {
     });
     defer engine.deinit();
 
-    try engine.registerEvent(.dvui_init, Ui.onDvuiInit, &ui);
-    try engine.registerEvent(.draw, Ui.onDraw, &ui);
-    try engine.registerEvent(.dvui_deinit, Ui.onDvuiDeinit, &ui);
+    try engine.registerEvent(.dvui_init, Ui.onDvuiInit, null);
+    try engine.registerEvent(.draw, Ui.onDraw, null);
     try engine.run();
 }

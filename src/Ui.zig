@@ -6,8 +6,6 @@ const log = std.log.scoped(.ui);
 
 const Ui = @This();
 
-texture: dvui.Texture = undefined,
-
 const Pixel = packed struct {
     r: u8,
     g: u8,
@@ -28,9 +26,7 @@ var image: [256 * 240]Pixel = blk: {
     break :blk pixels;
 };
 
-pub fn onDvuiInit(engine: *Engine, ui_opaque: ?*anyopaque) void {
-    _ = engine;
-    const ui: *Ui = @ptrCast(@alignCast(ui_opaque));
+pub fn onDvuiInit(_: *Engine, _: ?*anyopaque) void {
     var theme = dvui.themeGet();
 
     //TODO: Redo from scratch
@@ -48,28 +44,12 @@ pub fn onDvuiInit(engine: *Engine, ui_opaque: ?*anyopaque) void {
     theme.color_err = .fromHex("#f7768e"); // error highlight
 
     dvui.themeSet(theme);
-
-    ui.texture = dvui.textureCreate(
-        .cast(std.mem.sliceAsBytes(&image)),
-        256,
-        240,
-        .nearest,
-    ) catch {
-        log.err("Could not create texture", .{});
-        return;
-    };
 }
 
-pub fn onDraw(engine: *Engine, ui_opaque: ?*anyopaque) void {
-    const ui: *Ui = @ptrCast(@alignCast(ui_opaque));
+pub fn onDraw(engine: *Engine, _: ?*anyopaque) void {
     menu(engine);
-    canvas(ui);
+    canvas();
     dvui.Examples.demo();
-}
-
-pub fn onDvuiDeinit(_: *Engine, ui_opaque: ?*anyopaque) void {
-    const ui: *Ui = @ptrCast(@alignCast(ui_opaque));
-    dvui.textureDestroyLater(ui.texture);
 }
 
 fn menu(engine: *Engine) void {
@@ -96,19 +76,24 @@ fn menu(engine: *Engine) void {
     dvui.label(@src(), "FPS: {d:.0}", .{dvui.FPS()}, .{ .gravity_x = 1 });
 }
 
-fn canvas(ui: *Ui) void {
-    var frame_box = dvui.box(
+fn canvas() void {
+    _ = dvui.image(
         @src(),
-        .horizontal,
         .{
-            .min_size_content = .{ .w = 256, .h = 240 },
+            .bytes = .{
+                .pixels = .{
+                    .bytes = .cast(std.mem.sliceAsBytes(&image)),
+                    .width = 256,
+                    .height = 240,
+                },
+            },
+            .interpolation = .nearest,
+            .name = "canvas",
+        },
+        .{
             .gravity_x = 0.5,
             .gravity_y = 0.5,
             .expand = .ratio,
         },
     );
-    defer frame_box.deinit();
-    dvui.renderTexture(ui.texture, frame_box.data().contentRectScale(), .{}) catch {
-        log.err("Could not render texture", .{});
-    };
 }
