@@ -20,8 +20,8 @@ var image: [256 * 240]Pixel = blk: {
     var pixels: [256 * 240]Pixel = undefined;
 
     for (&pixels, 0..) |*p, i| {
-        p.r = i % 255 / 10;
-        p.g = i % 255;
+        p.r = i % 255;
+        p.g = i % 255 / i % 10;
         p.b = i % 255;
         p.a = 255;
     }
@@ -49,7 +49,12 @@ pub fn onDvuiInit(engine: *Engine, ui_opaque: ?*anyopaque) void {
 
     dvui.themeSet(theme);
 
-    ui.texture = dvui.textureCreate(.cast(std.mem.sliceAsBytes(&image)), 256, 240, .nearest) catch {
+    ui.texture = dvui.textureCreate(
+        .cast(std.mem.sliceAsBytes(&image)),
+        256,
+        240,
+        .nearest,
+    ) catch {
         log.err("Could not create texture", .{});
         return;
     };
@@ -62,10 +67,8 @@ pub fn onDraw(engine: *Engine, ui_opaque: ?*anyopaque) void {
     dvui.Examples.demo();
 }
 
-pub fn onDvuiDeinit(engine: *Engine, ui_opaque: ?*anyopaque) void {
+pub fn onDvuiDeinit(_: *Engine, ui_opaque: ?*anyopaque) void {
     const ui: *Ui = @ptrCast(@alignCast(ui_opaque));
-    _ = engine;
-
     dvui.textureDestroyLater(ui.texture);
 }
 

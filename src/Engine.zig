@@ -42,7 +42,7 @@ pub fn deinit(self: *Engine) void {
 }
 
 pub fn run(self: *Engine) !void {
-    log.info("Starting engine loop", .{});
+    log.info("Starting loop", .{});
     self.dispatcher.dispatch(.boot, .{});
 
     var backend = try Backend.initWindow(.{
