@@ -14,5 +14,6 @@
         "build.zig.zon",
         "src",
         "chip",
+        "system",
     },
 }
