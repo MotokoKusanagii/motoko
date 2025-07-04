@@ -1,6 +1,6 @@
 const std = @import("std");
 const testing = std.testing;
-const Chip = @import("../mos_technology_6502.zig").Chip;
+const Mos6502 = @import("mos_technology_6502.zig");
 const Bus = @import("Bus.zig");
 const micro = @import("instructions.zig").micro;
 
@@ -55,7 +55,7 @@ pub const TestBus = struct {
 test "lda #immediate" {
     // LDA #$42
     var bus = TestBus.setup(&.{ 0xA9, 0x42 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.clock();
@@ -66,7 +66,7 @@ test "lda #immediate" {
 test "lda zeroPage" {
     // LDA $A4
     var bus = TestBus.setup(&.{ 0xA5, 0xA4 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -80,7 +80,7 @@ test "lda zeroPage" {
 test "lda zeroPage,x (wrap)" {
     // LDA $F0,x
     var bus = TestBus.setup(&.{ 0xB5, 0xF0 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -95,7 +95,7 @@ test "lda zeroPage,x (wrap)" {
 test "lda absolute" {
     // LDA $4264
     var bus = TestBus.setup(&.{ 0xAD, 0x64, 0x42 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -110,7 +110,7 @@ test "lda absolute" {
 test "lda absolute,x" {
     // LDA $55F0,x
     var bus = TestBus.setup(&.{ 0xBD, 0xF0, 0x55 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -126,7 +126,7 @@ test "lda absolute,x" {
 test "lda absolute,y" {
     // LDA $55F0,y
     var bus = TestBus.setup(&.{ 0xB9, 0xF0, 0x55 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -142,7 +142,7 @@ test "lda absolute,y" {
 test "lda (indirect,x)" {
     // LDA ($F0,x)
     var bus = TestBus.setup(&.{ 0xA1, 0xF0 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -159,7 +159,7 @@ test "lda (indirect,x)" {
 test "lda (indirect),y" {
     // LDA ($55),y
     var bus = TestBus.setup(&.{ 0xB1, 0x55 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -177,7 +177,7 @@ test "lda (indirect),y" {
 test "lda flag z" {
     // LDA $4264
     var bus = TestBus.setup(&.{ 0xAD, 0x64, 0x42 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -192,7 +192,7 @@ test "lda flag z" {
 test "lda flag n" {
     // LDA $4264
     var bus = TestBus.setup(&.{ 0xAD, 0x64, 0x42 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -207,7 +207,7 @@ test "lda flag n" {
 test "sta zeroPage" {
     // STA $A4
     var bus = TestBus.setup(&.{ 0x85, 0xA4 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -221,7 +221,7 @@ test "sta zeroPage" {
 test "sta zeroPage,x (wrap)" {
     // STA $F0,x
     var bus = TestBus.setup(&.{ 0x95, 0xF0 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -236,7 +236,7 @@ test "sta zeroPage,x (wrap)" {
 test "sta absolute" {
     // STA $4264
     var bus = TestBus.setup(&.{ 0x8D, 0x64, 0x42 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -250,7 +250,7 @@ test "sta absolute" {
 test "sta absolute,x" {
     // STA $55F0,x
     var bus = TestBus.setup(&.{ 0x9D, 0xF0, 0x55 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -266,7 +266,7 @@ test "sta absolute,x" {
 test "sta absolute,y" {
     // STA $55F0,y
     var bus = TestBus.setup(&.{ 0x99, 0xF0, 0x55 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -282,7 +282,7 @@ test "sta absolute,y" {
 test "sta (indirect,x)" {
     // STA ($F0,x)
     var bus = TestBus.setup(&.{ 0x81, 0xF0 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -299,7 +299,7 @@ test "sta (indirect,x)" {
 test "sta (indirect),y" {
     // STA ($55),y
     var bus = TestBus.setup(&.{ 0x91, 0x55 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -317,7 +317,7 @@ test "sta (indirect),y" {
 test "ldx #immediate" {
     // LDX #$42
     var bus = TestBus.setup(&.{ 0xA2, 0x42 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.clock();
@@ -328,7 +328,7 @@ test "ldx #immediate" {
 test "ldx zeroPage" {
     // LDX $A4
     var bus = TestBus.setup(&.{ 0xA6, 0xA4 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -342,7 +342,7 @@ test "ldx zeroPage" {
 test "ldx zeroPage,y (wrap)" {
     // LDX $F0,y
     var bus = TestBus.setup(&.{ 0xB6, 0xF0 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -357,7 +357,7 @@ test "ldx zeroPage,y (wrap)" {
 test "ldx absolute" {
     // LDX $4264
     var bus = TestBus.setup(&.{ 0xAE, 0x64, 0x42 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -371,7 +371,7 @@ test "ldx absolute" {
 test "ldx absolute,y" {
     // LDX $55F0,y
     var bus = TestBus.setup(&.{ 0xBE, 0xF0, 0x55 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -387,7 +387,7 @@ test "ldx absolute,y" {
 test "ldx flag z" {
     // LDX $4264
     var bus = TestBus.setup(&.{ 0xAE, 0x64, 0x42 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -402,7 +402,7 @@ test "ldx flag z" {
 test "ldx flag n" {
     // LDA $4264
     var bus = TestBus.setup(&.{ 0xAE, 0x64, 0x42 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -417,7 +417,7 @@ test "ldx flag n" {
 test "stx zeroPage" {
     // STX $A4
     var bus = TestBus.setup(&.{ 0x86, 0xA4 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -431,7 +431,7 @@ test "stx zeroPage" {
 test "stx zeroPage,y (wrap)" {
     // STX $F0,y
     var bus = TestBus.setup(&.{ 0x96, 0xF0 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -446,7 +446,7 @@ test "stx zeroPage,y (wrap)" {
 test "stx absolute" {
     // STX $4264
     var bus = TestBus.setup(&.{ 0x8E, 0x64, 0x42 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -460,7 +460,7 @@ test "stx absolute" {
 test "ldy #immediate" {
     // LDY #$42
     var bus = TestBus.setup(&.{ 0xA0, 0x42 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.clock();
@@ -471,7 +471,7 @@ test "ldy #immediate" {
 test "ldy zeroPage" {
     // LDY $A4
     var bus = TestBus.setup(&.{ 0xA4, 0xA4 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -485,7 +485,7 @@ test "ldy zeroPage" {
 test "ldy zeroPage,x (wrap)" {
     // LDY $F0,x
     var bus = TestBus.setup(&.{ 0xB4, 0xF0 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -500,7 +500,7 @@ test "ldy zeroPage,x (wrap)" {
 test "ldy absolute" {
     // LDY $4264
     var bus = TestBus.setup(&.{ 0xAC, 0x64, 0x42 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -514,7 +514,7 @@ test "ldy absolute" {
 test "ldy absolute,x" {
     // LDY $55F0,x
     var bus = TestBus.setup(&.{ 0xBC, 0xF0, 0x55 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -530,7 +530,7 @@ test "ldy absolute,x" {
 test "sty zeroPage" {
     // STY $A4
     var bus = TestBus.setup(&.{ 0x84, 0xA4 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -544,7 +544,7 @@ test "sty zeroPage" {
 test "sty zeroPage,x (wrap)" {
     // STY $F0,y
     var bus = TestBus.setup(&.{ 0x94, 0xF0 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -559,7 +559,7 @@ test "sty zeroPage,x (wrap)" {
 test "sty absolute" {
     // STY $4264
     var bus = TestBus.setup(&.{ 0x8C, 0x64, 0x42 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -572,7 +572,7 @@ test "sty absolute" {
 
 test "tax implied" {
     var bus = TestBus.setup(&.{0xAA});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -585,7 +585,7 @@ test "tax implied" {
 
 test "txa implied" {
     var bus = TestBus.setup(&.{0x8A});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -598,7 +598,7 @@ test "txa implied" {
 
 test "tay implied" {
     var bus = TestBus.setup(&.{0xA8});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -611,7 +611,7 @@ test "tay implied" {
 
 test "tya implied" {
     var bus = TestBus.setup(&.{0x98});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -625,7 +625,7 @@ test "tya implied" {
 test "adc #immediate" {
     // ADC #$50
     var bus = TestBus.setup(&.{ 0x69, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -642,7 +642,7 @@ test "adc #immediate" {
 test "adc zeroPage" {
     // ADC $50
     var bus = TestBus.setup(&.{ 0x65, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -660,7 +660,7 @@ test "adc zeroPage" {
 test "adc zeroPage,x" {
     // ADC $50,x
     var bus = TestBus.setup(&.{ 0x75, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -680,7 +680,7 @@ test "adc zeroPage,x" {
 test "adc absolute" {
     // ADC $5030
     var bus = TestBus.setup(&.{ 0x6D, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -698,7 +698,7 @@ test "adc absolute" {
 test "adc absolute,x" {
     // ADC $50E0,x
     var bus = TestBus.setup(&.{ 0x7D, 0xE0, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -718,7 +718,7 @@ test "adc absolute,x" {
 test "adc absolute,y" {
     // ADC $5030,x
     var bus = TestBus.setup(&.{ 0x79, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -738,7 +738,7 @@ test "adc absolute,y" {
 test "adc (indirect,x)" {
     // ADC ($50,x)
     var bus = TestBus.setup(&.{ 0x61, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -759,7 +759,7 @@ test "adc (indirect,x)" {
 test "adc (indirect),y" {
     // ADC ($50,x)
     var bus = TestBus.setup(&.{ 0x71, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -781,7 +781,7 @@ test "adc (indirect),y" {
 test "sbc #immediate" {
     // SBC #$10
     var bus = TestBus.setup(&.{ 0xE9, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0x20;
@@ -799,7 +799,7 @@ test "sbc #immediate" {
 test "sbc zeroPage" {
     // SBC $50
     var bus = TestBus.setup(&.{ 0xE5, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x0050] = 0x20;
@@ -818,7 +818,7 @@ test "sbc zeroPage" {
 test "sbc zeroPage,x" {
     // SBC $50,x
     var bus = TestBus.setup(&.{ 0xF5, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x0055] = 0x01;
@@ -838,7 +838,7 @@ test "sbc zeroPage,x" {
 test "sbc absolute" {
     // SBC $5030
     var bus = TestBus.setup(&.{ 0xED, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x5030] = 0x80;
@@ -857,7 +857,7 @@ test "sbc absolute" {
 test "sbc absolute,x" {
     // SBC $50E0,x
     var bus = TestBus.setup(&.{ 0xFD, 0xE0, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x5100] = 0x01;
@@ -877,7 +877,7 @@ test "sbc absolute,x" {
 test "sbc absolute,y" {
     // SBC $5030,y
     var bus = TestBus.setup(&.{ 0xF9, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x5040] = 0x01;
@@ -896,7 +896,7 @@ test "sbc absolute,y" {
 test "sbc (indirect,x)" {
     // SBC ($50,x)
     var bus = TestBus.setup(&.{ 0xE1, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x0060] = 0x50;
@@ -918,7 +918,7 @@ test "sbc (indirect,x)" {
 test "sbc (indirect),y" {
     // SBC ($50),y
     var bus = TestBus.setup(&.{ 0xF1, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x0050] = 0x50;
@@ -940,7 +940,7 @@ test "sbc (indirect),y" {
 test "inc zeroPage" {
     // INC $50
     var bus = TestBus.setup(&.{ 0xE6, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare memory
@@ -956,7 +956,7 @@ test "inc zeroPage" {
 test "inc zeroPage,x" {
     // INC $50,X
     var bus = TestBus.setup(&.{ 0xF6, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x05;
@@ -972,7 +972,7 @@ test "inc zeroPage,x" {
 test "inc absolute" {
     // INC $5030
     var bus = TestBus.setup(&.{ 0xEE, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x5030] = 0x7F;
@@ -987,7 +987,7 @@ test "inc absolute" {
 test "inc absolute,x" {
     // INC $50E0,X
     var bus = TestBus.setup(&.{ 0xFE, 0xE0, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -1003,7 +1003,7 @@ test "inc absolute,x" {
 test "dec zeroPage" {
     // DEC $50
     var bus = TestBus.setup(&.{ 0xC6, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x0050] = 0x02;
@@ -1018,7 +1018,7 @@ test "dec zeroPage" {
 test "dec zeroPage,x" {
     // DEC $50,X
     var bus = TestBus.setup(&.{ 0xD6, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x05;
@@ -1034,7 +1034,7 @@ test "dec zeroPage,x" {
 test "dec absolute" {
     // DEC $5030
     var bus = TestBus.setup(&.{ 0xCE, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x5030] = 0x80;
@@ -1049,7 +1049,7 @@ test "dec absolute" {
 test "dec absolute,x" {
     // DEC $50E0,X
     var bus = TestBus.setup(&.{ 0xDE, 0xE0, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -1064,7 +1064,7 @@ test "dec absolute,x" {
 
 test "inx implied" {
     var bus = TestBus.setup(&.{0xE8});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0xFF;
@@ -1077,7 +1077,7 @@ test "inx implied" {
 
 test "dex implied" {
     var bus = TestBus.setup(&.{0xCA});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x01;
@@ -1090,7 +1090,7 @@ test "dex implied" {
 
 test "iny implied" {
     var bus = TestBus.setup(&.{0xC8});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.y = 0xFF;
@@ -1103,7 +1103,7 @@ test "iny implied" {
 
 test "dey implied" {
     var bus = TestBus.setup(&.{0x88});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.y = 0x01;
@@ -1116,7 +1116,7 @@ test "dey implied" {
 
 test "asl accumulator" {
     var bus = TestBus.setup(&.{0x0A});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0b1010_0001; // 0xA1
@@ -1131,7 +1131,7 @@ test "asl accumulator" {
 
 test "asl zeroPage" {
     var bus = TestBus.setup(&.{ 0x06, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x0050] = 0x40;
@@ -1146,7 +1146,7 @@ test "asl zeroPage" {
 
 test "asl zeroPage,x" {
     var bus = TestBus.setup(&.{ 0x16, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x05;
@@ -1162,7 +1162,7 @@ test "asl zeroPage,x" {
 
 test "asl absolute" {
     var bus = TestBus.setup(&.{ 0x0E, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x5030] = 0xFF;
@@ -1177,7 +1177,7 @@ test "asl absolute" {
 
 test "asl absolute,x" {
     var bus = TestBus.setup(&.{ 0x1E, 0xE0, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -1193,7 +1193,7 @@ test "asl absolute,x" {
 
 test "lsr accumulator" {
     var bus = TestBus.setup(&.{0x4A});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0b0000_0011; // bit 0 is 1 → C set, result is 0x01
@@ -1208,7 +1208,7 @@ test "lsr accumulator" {
 
 test "lsr zeroPage" {
     var bus = TestBus.setup(&.{ 0x46, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x0050] = 0b0000_0001;
@@ -1223,7 +1223,7 @@ test "lsr zeroPage" {
 
 test "lsr zeroPage,x" {
     var bus = TestBus.setup(&.{ 0x56, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x05;
@@ -1239,7 +1239,7 @@ test "lsr zeroPage,x" {
 
 test "lsr absolute" {
     var bus = TestBus.setup(&.{ 0x4E, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x5030] = 0x01;
@@ -1254,7 +1254,7 @@ test "lsr absolute" {
 
 test "lsr absolute,x" {
     var bus = TestBus.setup(&.{ 0x5E, 0xE0, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -1270,7 +1270,7 @@ test "lsr absolute,x" {
 
 test "rol accumulator" {
     var bus = TestBus.setup(&.{0x2A});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0b0100_0001; // bit 7 = 0, carry in = 1 → expect: 0b1000_0011
@@ -1286,7 +1286,7 @@ test "rol accumulator" {
 
 test "rol zeroPage" {
     var bus = TestBus.setup(&.{ 0x26, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x0050] = 0b1000_0000;
@@ -1302,7 +1302,7 @@ test "rol zeroPage" {
 
 test "rol zeroPage,x" {
     var bus = TestBus.setup(&.{ 0x36, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x05;
@@ -1319,7 +1319,7 @@ test "rol zeroPage,x" {
 
 test "rol absolute" {
     var bus = TestBus.setup(&.{ 0x2E, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x5030] = 0b1111_1111;
@@ -1335,7 +1335,7 @@ test "rol absolute" {
 
 test "rol absolute,x" {
     var bus = TestBus.setup(&.{ 0x3E, 0xE0, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -1352,7 +1352,7 @@ test "rol absolute,x" {
 
 test "ror accumulator" {
     var bus = TestBus.setup(&.{0x6A});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0b0000_0011;
@@ -1368,7 +1368,7 @@ test "ror accumulator" {
 
 test "ror zeroPage" {
     var bus = TestBus.setup(&.{ 0x66, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x0050] = 0b0000_0001;
@@ -1384,7 +1384,7 @@ test "ror zeroPage" {
 
 test "ror zeroPage,x" {
     var bus = TestBus.setup(&.{ 0x76, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x05;
@@ -1401,7 +1401,7 @@ test "ror zeroPage,x" {
 
 test "ror absolute" {
     var bus = TestBus.setup(&.{ 0x6E, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0x5030] = 0b0000_0001;
@@ -1417,7 +1417,7 @@ test "ror absolute" {
 
 test "ror absolute,x" {
     var bus = TestBus.setup(&.{ 0x7E, 0xE0, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -1434,7 +1434,7 @@ test "ror absolute,x" {
 
 test "and #immediate" {
     var bus = TestBus.setup(&.{ 0x29, 0x0F });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0x3C;
@@ -1448,7 +1448,7 @@ test "and #immediate" {
 
 test "and zeroPage" {
     var bus = TestBus.setup(&.{ 0x25, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0xF0;
@@ -1463,7 +1463,7 @@ test "and zeroPage" {
 
 test "and zeroPage,x" {
     var bus = TestBus.setup(&.{ 0x35, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x05;
@@ -1479,7 +1479,7 @@ test "and zeroPage,x" {
 
 test "and absolute" {
     var bus = TestBus.setup(&.{ 0x2D, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0xAA;
@@ -1494,7 +1494,7 @@ test "and absolute" {
 
 test "and absolute,x" {
     var bus = TestBus.setup(&.{ 0x3D, 0xE0, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -1510,7 +1510,7 @@ test "and absolute,x" {
 
 test "and absolute,y" {
     var bus = TestBus.setup(&.{ 0x39, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.y = 0x10;
@@ -1526,7 +1526,7 @@ test "and absolute,y" {
 
 test "and (indirect,x)" {
     var bus = TestBus.setup(&.{ 0x21, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -1545,7 +1545,7 @@ test "and (indirect,x)" {
 
 test "and (indirect),y" {
     var bus = TestBus.setup(&.{ 0x31, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.y = 0x10;
@@ -1564,7 +1564,7 @@ test "and (indirect),y" {
 
 test "ora #immediate" {
     var bus = TestBus.setup(&.{ 0x09, 0x0F });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0xF0;
@@ -1578,7 +1578,7 @@ test "ora #immediate" {
 
 test "ora zeroPage" {
     var bus = TestBus.setup(&.{ 0x05, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0x00;
@@ -1593,7 +1593,7 @@ test "ora zeroPage" {
 
 test "ora zeroPage,x" {
     var bus = TestBus.setup(&.{ 0x15, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x05;
@@ -1609,7 +1609,7 @@ test "ora zeroPage,x" {
 
 test "ora absolute" {
     var bus = TestBus.setup(&.{ 0x0D, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0x00;
@@ -1624,7 +1624,7 @@ test "ora absolute" {
 
 test "ora absolute,x" {
     var bus = TestBus.setup(&.{ 0x1D, 0xE0, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -1640,7 +1640,7 @@ test "ora absolute,x" {
 
 test "ora absolute,y" {
     var bus = TestBus.setup(&.{ 0x19, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.y = 0x10;
@@ -1656,7 +1656,7 @@ test "ora absolute,y" {
 
 test "ora (indirect,x)" {
     var bus = TestBus.setup(&.{ 0x01, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -1675,7 +1675,7 @@ test "ora (indirect,x)" {
 
 test "ora (indirect),y" {
     var bus = TestBus.setup(&.{ 0x11, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.y = 0x10;
@@ -1694,7 +1694,7 @@ test "ora (indirect),y" {
 
 test "eor #immediate" {
     var bus = TestBus.setup(&.{ 0x49, 0x0F });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0xF0;
@@ -1708,7 +1708,7 @@ test "eor #immediate" {
 
 test "eor zeroPage" {
     var bus = TestBus.setup(&.{ 0x45, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0xAA;
@@ -1723,7 +1723,7 @@ test "eor zeroPage" {
 
 test "eor zeroPage,x" {
     var bus = TestBus.setup(&.{ 0x55, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x05;
@@ -1739,7 +1739,7 @@ test "eor zeroPage,x" {
 
 test "eor absolute" {
     var bus = TestBus.setup(&.{ 0x4D, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0x0F;
@@ -1754,7 +1754,7 @@ test "eor absolute" {
 
 test "eor absolute,x" {
     var bus = TestBus.setup(&.{ 0x5D, 0xE0, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -1770,7 +1770,7 @@ test "eor absolute,x" {
 
 test "eor absolute,y" {
     var bus = TestBus.setup(&.{ 0x59, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.y = 0x10;
@@ -1786,7 +1786,7 @@ test "eor absolute,y" {
 
 test "eor (indirect,x)" {
     var bus = TestBus.setup(&.{ 0x41, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -1805,7 +1805,7 @@ test "eor (indirect,x)" {
 
 test "eor (indirect),y" {
     var bus = TestBus.setup(&.{ 0x51, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.y = 0x10;
@@ -1824,7 +1824,7 @@ test "eor (indirect),y" {
 
 test "bit zeroPage" {
     var bus = TestBus.setup(&.{ 0x24, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0b0000_1111;
@@ -1839,7 +1839,7 @@ test "bit zeroPage" {
 
 test "bit absolute" {
     var bus = TestBus.setup(&.{ 0x2C, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0b1111_0000;
@@ -1854,7 +1854,7 @@ test "bit absolute" {
 
 test "bit zeroPage with non-zero result" {
     var bus = TestBus.setup(&.{ 0x24, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0b0000_0101;
@@ -1870,7 +1870,7 @@ test "bit zeroPage with non-zero result" {
 
 test "cmp #immediate" {
     var bus = TestBus.setup(&.{ 0xC9, 0x0F });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0x0F;
@@ -1884,7 +1884,7 @@ test "cmp #immediate" {
 
 test "cmp zeroPage" {
     var bus = TestBus.setup(&.{ 0xC5, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0x10;
@@ -1899,7 +1899,7 @@ test "cmp zeroPage" {
 
 test "cmp zeroPage,x" {
     var bus = TestBus.setup(&.{ 0xD5, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x05;
@@ -1915,7 +1915,7 @@ test "cmp zeroPage,x" {
 
 test "cmp absolute" {
     var bus = TestBus.setup(&.{ 0xCD, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.a = 0x20;
@@ -1930,7 +1930,7 @@ test "cmp absolute" {
 
 test "cmp absolute,x" {
     var bus = TestBus.setup(&.{ 0xDD, 0xE0, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -1946,7 +1946,7 @@ test "cmp absolute,x" {
 
 test "cmp absolute,y" {
     var bus = TestBus.setup(&.{ 0xD9, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.y = 0x10;
@@ -1962,7 +1962,7 @@ test "cmp absolute,y" {
 
 test "cmp (indirect,x)" {
     var bus = TestBus.setup(&.{ 0xC1, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -1981,7 +1981,7 @@ test "cmp (indirect,x)" {
 
 test "cmp (indirect),y" {
     var bus = TestBus.setup(&.{ 0xD1, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.y = 0x10;
@@ -2000,7 +2000,7 @@ test "cmp (indirect),y" {
 
 test "cpx #immediate" {
     var bus = TestBus.setup(&.{ 0xE0, 0x20 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x20;
@@ -2014,7 +2014,7 @@ test "cpx #immediate" {
 
 test "cpx zeroPage" {
     var bus = TestBus.setup(&.{ 0xE4, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x10;
@@ -2029,7 +2029,7 @@ test "cpx zeroPage" {
 
 test "cpx absolute" {
     var bus = TestBus.setup(&.{ 0xEC, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.x = 0x80;
@@ -2044,7 +2044,7 @@ test "cpx absolute" {
 
 test "cpy #immediate" {
     var bus = TestBus.setup(&.{ 0xC0, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.y = 0x10;
@@ -2058,7 +2058,7 @@ test "cpy #immediate" {
 
 test "cpy zeroPage" {
     var bus = TestBus.setup(&.{ 0xC4, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.y = 0x00;
@@ -2073,7 +2073,7 @@ test "cpy zeroPage" {
 
 test "cpy absolute" {
     var bus = TestBus.setup(&.{ 0xCC, 0x30, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.y = 0xFF;
@@ -2088,7 +2088,7 @@ test "cpy absolute" {
 
 test "bcc not taken" {
     var bus = TestBus.setup(&.{ 0x90, 0x10 }); // BCC + $10
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.c, true); // carry is set → branch not taken
@@ -2101,7 +2101,7 @@ test "bcc not taken" {
 
 test "bcc taken" {
     var bus = TestBus.setup(&.{ 0x90, 0x10 }); // BCC + $10
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.c, false); // carry is not set → branch taken
@@ -2114,7 +2114,7 @@ test "bcc taken" {
 
 test "bcc taken (crossed page)" {
     var bus = TestBus.setup(&.{ 0x90, 0xF1 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.c, false); // carry is not set → branch taken
@@ -2127,7 +2127,7 @@ test "bcc taken (crossed page)" {
 
 test "bcs not taken" {
     var bus = TestBus.setup(&.{ 0xB0, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.c, false);
@@ -2140,7 +2140,7 @@ test "bcs not taken" {
 
 test "bcs taken" {
     var bus = TestBus.setup(&.{ 0xB0, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.c, true);
@@ -2153,7 +2153,7 @@ test "bcs taken" {
 
 test "bcs taken (crossed page)" {
     var bus = TestBus.setup(&.{ 0xB0, 0xF1 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.c, true);
@@ -2166,7 +2166,7 @@ test "bcs taken (crossed page)" {
 
 test "beq not taken" {
     var bus = TestBus.setup(&.{ 0xF0, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.z, false);
@@ -2179,7 +2179,7 @@ test "beq not taken" {
 
 test "beq taken" {
     var bus = TestBus.setup(&.{ 0xF0, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.z, true);
@@ -2192,7 +2192,7 @@ test "beq taken" {
 
 test "beq taken (crossed page)" {
     var bus = TestBus.setup(&.{ 0xF0, 0xF1 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.z, true);
@@ -2205,7 +2205,7 @@ test "beq taken (crossed page)" {
 
 test "bne not taken" {
     var bus = TestBus.setup(&.{ 0xD0, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.z, true);
@@ -2218,7 +2218,7 @@ test "bne not taken" {
 
 test "bne taken" {
     var bus = TestBus.setup(&.{ 0xD0, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.z, false);
@@ -2231,7 +2231,7 @@ test "bne taken" {
 
 test "bne taken (crossed page)" {
     var bus = TestBus.setup(&.{ 0xD0, 0xF1 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.z, false);
@@ -2244,7 +2244,7 @@ test "bne taken (crossed page)" {
 
 test "bpl not taken" {
     var bus = TestBus.setup(&.{ 0x10, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.n, true);
@@ -2257,7 +2257,7 @@ test "bpl not taken" {
 
 test "bpl taken" {
     var bus = TestBus.setup(&.{ 0x10, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.n, false);
@@ -2270,7 +2270,7 @@ test "bpl taken" {
 
 test "bpl taken (crossed page)" {
     var bus = TestBus.setup(&.{ 0x10, 0xF1 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.n, false);
@@ -2283,7 +2283,7 @@ test "bpl taken (crossed page)" {
 
 test "bmi not taken" {
     var bus = TestBus.setup(&.{ 0x30, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.n, false);
@@ -2296,7 +2296,7 @@ test "bmi not taken" {
 
 test "bmi taken" {
     var bus = TestBus.setup(&.{ 0x30, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.n, true);
@@ -2309,7 +2309,7 @@ test "bmi taken" {
 
 test "bmi taken (crossed page)" {
     var bus = TestBus.setup(&.{ 0x30, 0xF1 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.n, true);
@@ -2322,7 +2322,7 @@ test "bmi taken (crossed page)" {
 
 test "bvc not taken" {
     var bus = TestBus.setup(&.{ 0x50, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.v, true);
@@ -2335,7 +2335,7 @@ test "bvc not taken" {
 
 test "bvc taken" {
     var bus = TestBus.setup(&.{ 0x50, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.v, false);
@@ -2348,7 +2348,7 @@ test "bvc taken" {
 
 test "bvc taken (crossed page)" {
     var bus = TestBus.setup(&.{ 0x50, 0xF1 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.v, false);
@@ -2361,7 +2361,7 @@ test "bvc taken (crossed page)" {
 
 test "bvs not taken" {
     var bus = TestBus.setup(&.{ 0x70, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.v, false);
@@ -2374,7 +2374,7 @@ test "bvs not taken" {
 
 test "bvs taken" {
     var bus = TestBus.setup(&.{ 0x70, 0x10 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.v, true);
@@ -2387,7 +2387,7 @@ test "bvs taken" {
 
 test "bvs taken (crossed page)" {
     var bus = TestBus.setup(&.{ 0x70, 0xF1 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.status.set(.v, true);
@@ -2401,7 +2401,7 @@ test "bvs taken (crossed page)" {
 test "jmp absolute" {
     // JMP $5025
     var bus = TestBus.setup(&.{ 0x4C, 0x25, 0x50 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.clock();
@@ -2412,7 +2412,7 @@ test "jmp absolute" {
 test "jmp (indirect)" {
     // JMP ($ABBA)
     var bus = TestBus.setup(&.{ 0x6C, 0xBA, 0xAB });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     bus.data[0xABBA] = 0x34;
@@ -2426,7 +2426,7 @@ test "jmp (indirect)" {
 test "jsr absolute" {
     // JSR $2548
     var bus = TestBus.setup(&.{ 0x20, 0x48, 0x25 });
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.sp = 0x50;
@@ -2440,7 +2440,7 @@ test "jsr absolute" {
 
 test "rts implied" {
     var bus = TestBus.setup(&.{0x60});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.sp = 0x50;
@@ -2455,7 +2455,7 @@ test "rts implied" {
 
 test "brk implied" {
     var bus = TestBus.setup(&.{0x00});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2478,7 +2478,7 @@ test "brk implied" {
 
 test "rti implied" {
     var bus = TestBus.setup(&.{0x40});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2495,7 +2495,7 @@ test "rti implied" {
 
 test "pha implied" {
     var bus = TestBus.setup(&.{0x48});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2509,7 +2509,7 @@ test "pha implied" {
 
 test "pla implied" {
     var bus = TestBus.setup(&.{0x68});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2523,7 +2523,7 @@ test "pla implied" {
 
 test "pla flag z" {
     var bus = TestBus.setup(&.{0x68});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2537,7 +2537,7 @@ test "pla flag z" {
 
 test "pla flag n" {
     var bus = TestBus.setup(&.{0x68});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2551,7 +2551,7 @@ test "pla flag n" {
 
 test "php implied" {
     var bus = TestBus.setup(&.{0x08});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2565,7 +2565,7 @@ test "php implied" {
 
 test "plp implied" {
     var bus = TestBus.setup(&.{0x28});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2589,7 +2589,7 @@ test "plp implied" {
 
 test "txs implied" {
     var bus = TestBus.setup(&.{0x9A});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2602,7 +2602,7 @@ test "txs implied" {
 
 test "tsx implied" {
     var bus = TestBus.setup(&.{0xBA});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2615,7 +2615,7 @@ test "tsx implied" {
 
 test "tsx flag z" {
     var bus = TestBus.setup(&.{0xBA});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2628,7 +2628,7 @@ test "tsx flag z" {
 
 test "tsx flag n" {
     var bus = TestBus.setup(&.{0xBA});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2641,7 +2641,7 @@ test "tsx flag n" {
 
 test "clc implied" {
     var bus = TestBus.setup(&.{0x18});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2654,7 +2654,7 @@ test "clc implied" {
 
 test "sec implied" {
     var bus = TestBus.setup(&.{0x38});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2667,7 +2667,7 @@ test "sec implied" {
 
 test "cli implied" {
     var bus = TestBus.setup(&.{0x58});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2680,7 +2680,7 @@ test "cli implied" {
 
 test "sei implied" {
     var bus = TestBus.setup(&.{0x78});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
 
     cpu.powerOn();
 
@@ -2694,7 +2694,7 @@ test "sei implied" {
 
 test "cld implied" {
     var bus = TestBus.setup(&.{0xD8});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2707,7 +2707,7 @@ test "cld implied" {
 
 test "sed implied" {
     var bus = TestBus.setup(&.{0xF8});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2720,7 +2720,7 @@ test "sed implied" {
 
 test "clv implied" {
     var bus = TestBus.setup(&.{0xB8});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     // Prepare data
@@ -2733,7 +2733,7 @@ test "clv implied" {
 
 test "nop implied" {
     var bus = TestBus.setup(&.{0xEA});
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.powerOn();
 
     cpu.clock();

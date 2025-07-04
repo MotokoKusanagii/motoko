@@ -73,6 +73,46 @@ fn menu(engine: *Engine) void {
         _ = dvui.checkbox(@src(), &dvui.Examples.show_demo_window, "Demo Window", .{});
     }
 
+    const image_bytes = dvui.ImageInitOptions.ImageBytes{ .pixels = .{
+        .bytes = .cast(std.mem.sliceAsBytes(&image)),
+        .width = 256,
+        .height = 240,
+    } };
+
+    if (dvui.button(@src(), "Red", .{}, .{})) {
+        dvui.TextureCacheEntry.invalidateCachedImage(image_bytes);
+        for (&image) |*p| {
+            p.r = 255;
+            p.g = 0;
+            p.b = 0;
+            p.a = 255;
+        }
+    }
+    if (dvui.button(@src(), "Green", .{}, .{})) {
+        dvui.TextureCacheEntry.invalidateCachedImage(image_bytes);
+        for (&image) |*p| {
+            p.r = 0;
+            p.g = 255;
+            p.b = 0;
+            p.a = 255;
+        }
+    }
+    if (dvui.button(@src(), "Blue", .{}, .{})) {
+        dvui.TextureCacheEntry.invalidateCachedImage(image_bytes);
+        for (&image) |*p| {
+            p.r = 0;
+            p.g = 0;
+            p.b = 255;
+            p.a = 255;
+        }
+    }
+
+    dvui.label(@src(), "Pixels: R: {d} G {d} B {d}", .{
+        image[500].r,
+        image[500].g,
+        image[500].b,
+    }, .{});
+
     dvui.label(@src(), "FPS: {d:.0}", .{dvui.FPS()}, .{ .gravity_x = 1 });
 }
 
@@ -88,7 +128,7 @@ fn canvas() void {
                 },
             },
             .interpolation = .nearest,
-            .name = "canvas",
+            .name = "nes-output",
         },
         .{
             .gravity_x = 0.5,

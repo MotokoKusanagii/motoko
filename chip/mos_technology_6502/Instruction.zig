@@ -1,5 +1,5 @@
 const std = @import("std");
-const Chip = @import("../mos_technology_6502.zig").Chip;
+const Mos6502 = @import("mos_technology_6502.zig");
 const instructions = @import("instructions.zig");
 
 const Instruction = @This();
@@ -96,7 +96,7 @@ pub const Mode = enum {
     unknown,
 };
 
-pub fn run(self: Instruction, cpu: *Chip) bool {
+pub fn run(self: Instruction, cpu: *Mos6502) bool {
     const address_return = switch (self.mode) {
         .accumulator => instructions.accumulator(cpu),
         .implied => instructions.implied(cpu),

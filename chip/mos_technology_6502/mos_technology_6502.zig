@@ -1,10 +1,12 @@
 const std = @import("std");
-pub const instructions = @import("mos_technology_6502/instructions.zig");
-pub const parser = @import("mos_technology_6502/parser.zig");
-pub const Instruction = @import("mos_technology_6502/Instruction.zig");
-pub const Bus = @import("mos_technology_6502/Bus.zig");
-pub const TestBus = @import("mos_technology_6502/testing.zig").TestBus;
-pub const Assembler = @import("mos_technology_6502/Assembler.zig");
+pub const instructions = @import("instructions.zig");
+pub const parser = @import("parser.zig");
+pub const Instruction = @import("Instruction.zig");
+pub const Bus = @import("Bus.zig");
+pub const TestBus = @import("testing.zig").TestBus;
+pub const Assembler = @import("Assembler.zig");
+
+const Mos6502 = @This();
 
 pub const Status = struct {
     data: u8,
@@ -36,95 +38,93 @@ pub const Status = struct {
     }
 };
 
-pub const Chip = struct {
-    // Register
-    status: Status,
-    pc: u16,
-    sp: u8,
-    a: u8,
-    x: u8,
-    y: u8,
+// Register
+status: Status,
+pc: u16,
+sp: u8,
+a: u8,
+x: u8,
+y: u8,
 
-    // Bus
-    bus: Bus,
+// Bus
+bus: Bus,
 
-    // Meta
-    cycles_left: u8,
+// Meta
+cycles_left: u8,
 
-    pub fn init(bus: Bus) Chip {
-        return .{
-            .status = .init,
-            .pc = 0x0000,
-            .sp = 0x00,
-            .a = 0x00,
-            .x = 0x00,
-            .y = 0x00,
-            .bus = bus,
-            .cycles_left = 0x00,
-        };
+pub fn init(bus: Bus) Mos6502 {
+    return .{
+        .status = .init,
+        .pc = 0x0000,
+        .sp = 0x00,
+        .a = 0x00,
+        .x = 0x00,
+        .y = 0x00,
+        .bus = bus,
+        .cycles_left = 0x00,
+    };
+}
+
+pub fn powerOn(self: *Mos6502) void {
+    self.a = 0;
+    self.x = 0;
+    self.y = 0;
+
+    const pc_lo: u16 = self.read(0xFFFC);
+    const pc_hi: u16 = self.read(0xFFFD);
+    self.pc = (pc_hi << 8) | pc_lo;
+
+    self.sp = 0xFD;
+
+    self.status = .init;
+    self.status.set(.i, true);
+}
+
+pub fn reset(self: *Mos6502) void {
+    const pc_lo: u16 = self.read(0xFFFC);
+    const pc_hi: u16 = self.read(0xFFFD);
+    self.pc = (pc_hi << 8) | pc_lo;
+    self.sp = 0xFD;
+    self.status.set(.i, true);
+
+    self.cycles_left = 8;
+}
+
+pub fn clock(self: *Mos6502) void {
+    if (self.cycles_left == 0) {
+        const opcode = self.read(self.pc);
+        self.pc += 1;
+
+        const decode = Instruction.decode(opcode);
+
+        self.cycles_left = decode.cycles;
+
+        const cycle_request = decode.run(self);
+
+        self.cycles_left += if (cycle_request) 1 else 0;
     }
+    self.cycles_left -= 1;
+}
 
-    pub fn powerOn(self: *Chip) void {
-        self.a = 0;
-        self.x = 0;
-        self.y = 0;
+pub fn nmi(self: *Mos6502) void {
+    _ = self;
+    @panic("TODO: implement nmi()");
+}
 
-        const pc_lo: u16 = self.read(0xFFFC);
-        const pc_hi: u16 = self.read(0xFFFD);
-        self.pc = (pc_hi << 8) | pc_lo;
+pub fn irq(self: *Mos6502) void {
+    _ = self;
+    @panic("TODO: implement irq()");
+}
 
-        self.sp = 0xFD;
+pub fn write(self: *Mos6502, addr: u16, value: u8) void {
+    self.bus.write(addr, value);
+}
 
-        self.status = .init;
-        self.status.set(.i, true);
-    }
+pub fn read(self: Mos6502, addr: u16) u8 {
+    return self.bus.read(addr);
+}
 
-    pub fn reset(self: *Chip) void {
-        const pc_lo: u16 = self.read(0xFFFC);
-        const pc_hi: u16 = self.read(0xFFFD);
-        self.pc = (pc_hi << 8) | pc_lo;
-        self.sp = 0xFD;
-        self.status.set(.i, true);
-
-        self.cycles_left = 8;
-    }
-
-    pub fn clock(self: *Chip) void {
-        if (self.cycles_left == 0) {
-            const opcode = self.read(self.pc);
-            self.pc += 1;
-
-            const decode = Instruction.decode(opcode);
-
-            self.cycles_left = decode.cycles;
-
-            const cycle_request = decode.run(self);
-
-            self.cycles_left += if (cycle_request) 1 else 0;
-        }
-        self.cycles_left -= 1;
-    }
-
-    pub fn nmi(self: *Chip) void {
-        _ = self;
-        @panic("TODO: implement nmi()");
-    }
-
-    pub fn irq(self: *Chip) void {
-        _ = self;
-        @panic("TODO: implement irq()");
-    }
-
-    pub fn write(self: *Chip, addr: u16, value: u8) void {
-        self.bus.write(addr, value);
-    }
-
-    pub fn read(self: Chip, addr: u16) u8 {
-        return self.bus.read(addr);
-    }
-};
-
-pub fn bufPrintCurInstr(chip: Chip, buf: []u8) ![]u8 {
+pub fn bufPrintCurInstr(chip: Mos6502, buf: []u8) ![]u8 {
     const print = std.fmt.bufPrint;
     const opcode = chip.read(chip.pc);
     const decode = Instruction.decode(opcode);
@@ -249,7 +249,7 @@ test "cpu read/write" {
     };
     @memset(&bus.data, 0);
 
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.write(0x00FF, 0x17);
     cpu.write(0x5978, 0x69);
 
@@ -263,7 +263,7 @@ test "cpu register" {
     };
     @memset(&bus.data, 0);
 
-    var cpu = Chip.init(bus.bus());
+    var cpu = Mos6502.init(bus.bus());
     cpu.status.set(.d, true);
     cpu.status.set(.v, true);
 
@@ -275,5 +275,5 @@ test "cpu register" {
 }
 
 test "instructions" {
-    std.testing.refAllDecls(@import("mos_technology_6502/testing.zig"));
+    std.testing.refAllDecls(@import("testing.zig"));
 }

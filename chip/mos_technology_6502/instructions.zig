@@ -1,7 +1,7 @@
 const std = @import("std");
 const TestBus = @import("testing.zig").TestBus;
-const Chip = @import("../mos_technology_6502.zig").Chip;
-const Status = @import("../mos_technology_6502.zig").Status;
+const Mos6502 = @import("mos_technology_6502.zig");
+const Status = @import("mos_technology_6502.zig").Status;
 
 pub const AddressReturn = struct {
     cycle_request: bool,
@@ -11,21 +11,21 @@ pub const AddressReturn = struct {
 };
 
 pub const micro = struct {
-    pub fn readSp(cpu: *Chip) u8 {
+    pub fn readSp(cpu: *Mos6502) u8 {
         return cpu.read(@as(u16, cpu.sp) + 0x0100);
     }
-    pub fn writeSp(cpu: *Chip, data: u8) void {
+    pub fn writeSp(cpu: *Mos6502, data: u8) void {
         cpu.write(@as(u16, cpu.sp) + 0x0100, data);
     }
-    pub fn getSpAbs(cpu: *Chip) u16 {
+    pub fn getSpAbs(cpu: *Mos6502) u16 {
         return @as(u16, cpu.sp) + 0x0100;
     }
-    pub fn fetch16(cpu: *Chip, address: u16) u16 {
+    pub fn fetch16(cpu: *Mos6502, address: u16) u16 {
         const lo: u16 = cpu.read(address);
         const hi: u16 = cpu.read(address +% 1);
         return (hi << 8) | lo;
     }
-    pub fn takeBranch(cpu: *Chip, ret: AddressReturn) void {
+    pub fn takeBranch(cpu: *Mos6502, ret: AddressReturn) void {
         cpu.cycles_left += 1;
         const rel: i16 = ret.relative;
 
@@ -44,7 +44,7 @@ pub const micro = struct {
     }
 };
 
-pub fn accumulator(_: *Chip) AddressReturn {
+pub fn accumulator(_: *Mos6502) AddressReturn {
     return .{
         .cycle_request = false,
         .address = 0x00,
@@ -52,14 +52,14 @@ pub fn accumulator(_: *Chip) AddressReturn {
     };
 }
 
-pub fn implied(_: *Chip) AddressReturn {
+pub fn implied(_: *Mos6502) AddressReturn {
     return .{
         .cycle_request = false,
         .address = 0x00,
     };
 }
 
-pub fn immediate(cpu: *Chip) AddressReturn {
+pub fn immediate(cpu: *Mos6502) AddressReturn {
     const address = cpu.pc;
     cpu.pc += 1;
     return .{
@@ -68,7 +68,7 @@ pub fn immediate(cpu: *Chip) AddressReturn {
     };
 }
 
-pub fn zeroPage(cpu: *Chip) AddressReturn {
+pub fn zeroPage(cpu: *Mos6502) AddressReturn {
     const address: u16 = cpu.read(cpu.pc);
     cpu.pc += 1;
     return .{
@@ -77,7 +77,7 @@ pub fn zeroPage(cpu: *Chip) AddressReturn {
     };
 }
 
-pub fn zeroPageX(cpu: *Chip) AddressReturn {
+pub fn zeroPageX(cpu: *Mos6502) AddressReturn {
     var address: u8 = cpu.read(cpu.pc);
     address +%= cpu.x;
     cpu.pc += 1;
@@ -87,7 +87,7 @@ pub fn zeroPageX(cpu: *Chip) AddressReturn {
     };
 }
 
-pub fn zeroPageY(cpu: *Chip) AddressReturn {
+pub fn zeroPageY(cpu: *Mos6502) AddressReturn {
     var address: u8 = cpu.read(cpu.pc);
     address +%= cpu.y;
     cpu.pc += 1;
@@ -97,7 +97,7 @@ pub fn zeroPageY(cpu: *Chip) AddressReturn {
     };
 }
 
-pub fn absolute(cpu: *Chip) AddressReturn {
+pub fn absolute(cpu: *Mos6502) AddressReturn {
     const lo: u16 = cpu.read(cpu.pc);
     cpu.pc += 1;
     const hi: u16 = cpu.read(cpu.pc);
@@ -108,7 +108,7 @@ pub fn absolute(cpu: *Chip) AddressReturn {
     };
 }
 
-pub fn absoluteX(cpu: *Chip) AddressReturn {
+pub fn absoluteX(cpu: *Mos6502) AddressReturn {
     const lo: u16 = cpu.read(cpu.pc);
     cpu.pc += 1;
     const hi: u16 = cpu.read(cpu.pc);
@@ -123,7 +123,7 @@ pub fn absoluteX(cpu: *Chip) AddressReturn {
     };
 }
 
-pub fn absoluteY(cpu: *Chip) AddressReturn {
+pub fn absoluteY(cpu: *Mos6502) AddressReturn {
     const lo: u16 = cpu.read(cpu.pc);
     cpu.pc += 1;
     const hi: u16 = cpu.read(cpu.pc);
@@ -138,7 +138,7 @@ pub fn absoluteY(cpu: *Chip) AddressReturn {
     };
 }
 
-pub fn indirect(cpu: *Chip) AddressReturn {
+pub fn indirect(cpu: *Mos6502) AddressReturn {
     const ptr_lo: u16 = cpu.read(cpu.pc);
     cpu.pc += 1;
     const ptr_hi: u16 = cpu.read(cpu.pc);
@@ -155,7 +155,7 @@ pub fn indirect(cpu: *Chip) AddressReturn {
     };
 }
 
-pub fn indirectX(cpu: *Chip) AddressReturn {
+pub fn indirectX(cpu: *Mos6502) AddressReturn {
     var ptr: u8 = cpu.read(cpu.pc);
     cpu.pc += 1;
 
@@ -169,7 +169,7 @@ pub fn indirectX(cpu: *Chip) AddressReturn {
     };
 }
 
-pub fn indirectY(cpu: *Chip) AddressReturn {
+pub fn indirectY(cpu: *Mos6502) AddressReturn {
     const ptr: u8 = cpu.read(cpu.pc);
     cpu.pc += 1;
 
@@ -186,7 +186,7 @@ pub fn indirectY(cpu: *Chip) AddressReturn {
     };
 }
 
-pub fn relative(cpu: *Chip) AddressReturn {
+pub fn relative(cpu: *Mos6502) AddressReturn {
     const offset = cpu.read(cpu.pc);
     cpu.pc += 1;
 
@@ -197,7 +197,7 @@ pub fn relative(cpu: *Chip) AddressReturn {
     };
 }
 
-pub fn address_unknown(_: *Chip) AddressReturn {
+pub fn address_unknown(_: *Mos6502) AddressReturn {
     @panic("unknown address mode!");
 }
 
@@ -214,7 +214,7 @@ pub fn address_unknown(_: *Chip) AddressReturn {
 /// 0xB9 - 3 bytes - 4 cycles* - absolute,y
 /// 0xA1 - 2 bytes - 6 cycles - (indirect,x)
 /// 0xB1 - 2 bytes - 5 cycles* - (indirect),y
-pub fn lda(cpu: *Chip, ret: AddressReturn) bool {
+pub fn lda(cpu: *Mos6502, ret: AddressReturn) bool {
     cpu.a = cpu.read(ret.address);
     cpu.status.set(.z, cpu.a == 0x00);
     cpu.status.set(.n, cpu.a & 0x80 != 0);
@@ -230,7 +230,7 @@ pub fn lda(cpu: *Chip, ret: AddressReturn) bool {
 /// 0x99 - 3 bytes - 5 cycles - absolute,y
 /// 0x81 - 2 bytes - 6 cycles - (indirect,x)
 /// 0x91 - 2 bytes - 6 cycles - (indirect),y
-pub fn sta(cpu: *Chip, ret: AddressReturn) bool {
+pub fn sta(cpu: *Mos6502, ret: AddressReturn) bool {
     cpu.write(ret.address, cpu.a);
     return false;
 }
@@ -245,7 +245,7 @@ pub fn sta(cpu: *Chip, ret: AddressReturn) bool {
 /// 0xB6 - 2 bytes - 4 cycles - zeroPage,y
 /// 0xAE - 3 bytes - 4 cycles - absolute
 /// 0xBE - 3 bytes - 4 cycles* - absolute,y
-pub fn ldx(cpu: *Chip, ret: AddressReturn) bool {
+pub fn ldx(cpu: *Mos6502, ret: AddressReturn) bool {
     cpu.x = cpu.read(ret.address);
     cpu.status.set(.z, cpu.x == 0x00);
     cpu.status.set(.n, cpu.x & 0x80 != 0);
@@ -257,7 +257,7 @@ pub fn ldx(cpu: *Chip, ret: AddressReturn) bool {
 /// 0x86 - 2 bytes - 3 cycles - zeroPage
 /// 0x96 - 2 bytes - 4 cycles - zeroPage,y
 /// 0x8E - 3 bytes - 4 cycles - absolute
-pub fn stx(cpu: *Chip, ret: AddressReturn) bool {
+pub fn stx(cpu: *Mos6502, ret: AddressReturn) bool {
     cpu.write(ret.address, cpu.x);
     return false;
 }
@@ -272,7 +272,7 @@ pub fn stx(cpu: *Chip, ret: AddressReturn) bool {
 /// 0xB4 - 2 bytes - 4 cycles - zeroPage,x
 /// 0xAC - 3 bytes - 4 cycles - absolute
 /// 0xBC - 3 bytes - 4 cycles - absolute,x
-pub fn ldy(cpu: *Chip, ret: AddressReturn) bool {
+pub fn ldy(cpu: *Mos6502, ret: AddressReturn) bool {
     cpu.y = cpu.read(ret.address);
     cpu.status.set(.z, cpu.x == 0x00);
     cpu.status.set(.n, cpu.x & 0x80 != 0);
@@ -284,7 +284,7 @@ pub fn ldy(cpu: *Chip, ret: AddressReturn) bool {
 /// 0x84 - 2 bytes - 3 cycles - zeroPage
 /// 0x94 - 2 bytes - 4 cycles - zeroPage,x
 /// 0x8C - 3 bytes - 4 cycles - absolute
-pub fn sty(cpu: *Chip, ret: AddressReturn) bool {
+pub fn sty(cpu: *Mos6502, ret: AddressReturn) bool {
     cpu.write(ret.address, cpu.y);
     return false;
 }
@@ -295,7 +295,7 @@ pub fn sty(cpu: *Chip, ret: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result & 0x80 != 0
 /// 0xAA - 1 byte - 2 cycles - implied
-pub fn tax(cpu: *Chip, _: AddressReturn) bool {
+pub fn tax(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.x = cpu.a;
     cpu.status.set(.z, cpu.x == 0x00);
     cpu.status.set(.n, cpu.x & 0x80 != 0);
@@ -308,7 +308,7 @@ pub fn tax(cpu: *Chip, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result & 0x80 != 0
 /// 0x8A - 1 byte - 2 cycles - implied
-pub fn txa(cpu: *Chip, _: AddressReturn) bool {
+pub fn txa(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.a = cpu.x;
     cpu.status.set(.z, cpu.a == 0x00);
     cpu.status.set(.n, cpu.a & 0x80 != 0);
@@ -321,7 +321,7 @@ pub fn txa(cpu: *Chip, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result & 0x80 != 0
 /// 0xA8 - 1 byte - 2 cycles - implied
-pub fn tay(cpu: *Chip, _: AddressReturn) bool {
+pub fn tay(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.y = cpu.a;
     cpu.status.set(.z, cpu.y == 0x00);
     cpu.status.set(.n, cpu.y & 0x80 != 0);
@@ -334,7 +334,7 @@ pub fn tay(cpu: *Chip, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result & 0x80 != 0
 /// 0x98 - 1 byte - 2 cycles - implied
-pub fn tya(cpu: *Chip, _: AddressReturn) bool {
+pub fn tya(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.a = cpu.y;
     cpu.status.set(.z, cpu.a == 0x00);
     cpu.status.set(.n, cpu.a & 0x80 != 0);
@@ -356,7 +356,7 @@ pub fn tya(cpu: *Chip, _: AddressReturn) bool {
 /// 0x79 - 3 bytes - 4 cycles* - absolute,y
 /// 0x61 - 2 bytes - 6 cycles - (indirect,x)
 /// 0x71 - 2 bytes - 5 cycles* - (indirect),y
-pub fn adc(cpu: *Chip, ret: AddressReturn) bool {
+pub fn adc(cpu: *Mos6502, ret: AddressReturn) bool {
     const m: u16 = cpu.read(ret.address);
     const c: u16 = @intFromBool(cpu.status.isSet(.c));
     const a: u16 = cpu.a;
@@ -387,7 +387,7 @@ pub fn adc(cpu: *Chip, ret: AddressReturn) bool {
 /// 0xF9 - 3 bytes - 4 cycles* - absolute,y
 /// 0xE1 - 2 bytes - 6 cycles - (indirect,x)
 /// 0xF1 - 2 bytes - 5 cycles* - (indirect),y
-pub fn sbc(cpu: *Chip, ret: AddressReturn) bool {
+pub fn sbc(cpu: *Mos6502, ret: AddressReturn) bool {
     const m: u16 = cpu.read(ret.address);
     const c: u16 = @intFromBool(cpu.status.isSet(.c));
     const a: u16 = cpu.a;
@@ -412,7 +412,7 @@ pub fn sbc(cpu: *Chip, ret: AddressReturn) bool {
 /// 0xF6 - 2 bytes - 6 cycles - zeroPage,x
 /// 0xEE - 3 bytes - 6 cycles - absolute
 /// 0xFE - 3 bytes - 7 cycles - absolute,x
-pub fn inc(cpu: *Chip, ret: AddressReturn) bool {
+pub fn inc(cpu: *Mos6502, ret: AddressReturn) bool {
     const memory = cpu.read(ret.address);
     const result = memory +% 1;
     cpu.write(ret.address, result);
@@ -430,7 +430,7 @@ pub fn inc(cpu: *Chip, ret: AddressReturn) bool {
 /// 0xD6 - 2 bytes - 6 cycles - zeroPage,x
 /// 0xCE - 3 bytes - 6 cycles - absolute
 /// 0xDE - 3 bytes - 7 cycles - absolute,x
-pub fn dec(cpu: *Chip, ret: AddressReturn) bool {
+pub fn dec(cpu: *Mos6502, ret: AddressReturn) bool {
     const memory = cpu.read(ret.address);
     const result = memory -% 1;
     cpu.write(ret.address, result);
@@ -444,7 +444,7 @@ pub fn dec(cpu: *Chip, ret: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result 0x80 != 0
 /// 0xE8 - 1 byte - 2 cycles - implied
-pub fn inx(cpu: *Chip, _: AddressReturn) bool {
+pub fn inx(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.x +%= 1;
     cpu.status.set(.z, cpu.x == 0x00);
     cpu.status.set(.n, cpu.x & 0x80 != 0);
@@ -456,7 +456,7 @@ pub fn inx(cpu: *Chip, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result 0x80 != 0
 /// 0xCA - 1 byte - 2 cycles - implied
-pub fn dex(cpu: *Chip, _: AddressReturn) bool {
+pub fn dex(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.x -%= 1;
     cpu.status.set(.z, cpu.x == 0x00);
     cpu.status.set(.n, cpu.x & 0x80 != 0);
@@ -468,7 +468,7 @@ pub fn dex(cpu: *Chip, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result 0x80 != 0
 /// 0xC8 - 1 byte - 2 cycles - implied
-pub fn iny(cpu: *Chip, _: AddressReturn) bool {
+pub fn iny(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.y +%= 1;
     cpu.status.set(.z, cpu.y == 0x00);
     cpu.status.set(.n, cpu.y & 0x80 != 0);
@@ -480,7 +480,7 @@ pub fn iny(cpu: *Chip, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result 0x80 != 0
 /// 0x88 - 1 byte - 2 cycles - implied
-pub fn dey(cpu: *Chip, _: AddressReturn) bool {
+pub fn dey(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.y -%= 1;
     cpu.status.set(.z, cpu.y == 0x00);
     cpu.status.set(.n, cpu.y & 0x80 != 0);
@@ -498,7 +498,7 @@ pub fn dey(cpu: *Chip, _: AddressReturn) bool {
 /// 0x16 - 2 bytes - 6 cycles - zeroPage,x
 /// 0x0E - 3 bytes - 6 cycles - absolute
 /// 0x1E - 3 bytes - 7 cycles - absolute,x
-pub fn asl(cpu: *Chip, ret: AddressReturn) bool {
+pub fn asl(cpu: *Mos6502, ret: AddressReturn) bool {
     if (ret.accumulator) {
         const value: u16 = cpu.a;
         const result = value << 1;
@@ -528,7 +528,7 @@ pub fn asl(cpu: *Chip, ret: AddressReturn) bool {
 /// 0x56 - 2 bytes - 6 cycles - zeroPage,x
 /// 0x4E - 3 bytes - 6 cycles - absolute
 /// 0x5E - 3 bytes - 7 cycles - absolute,x
-pub fn lsr(cpu: *Chip, ret: AddressReturn) bool {
+pub fn lsr(cpu: *Mos6502, ret: AddressReturn) bool {
     if (ret.accumulator) {
         const value: u16 = cpu.a;
         const result = value >> 1;
@@ -558,7 +558,7 @@ pub fn lsr(cpu: *Chip, ret: AddressReturn) bool {
 /// 0x36 - 2 bytes - 6 cycles - zeroPage,x
 /// 0x2E - 3 bytes - 6 cycles - absolute
 /// 0x3E - 3 bytes - 7 cycles - absolute,x
-pub fn rol(cpu: *Chip, ret: AddressReturn) bool {
+pub fn rol(cpu: *Mos6502, ret: AddressReturn) bool {
     if (ret.accumulator) {
         const c: u16 = @intFromBool(cpu.status.isSet(.c));
         const value: u16 = cpu.a;
@@ -590,7 +590,7 @@ pub fn rol(cpu: *Chip, ret: AddressReturn) bool {
 /// 0x76 - 2 bytes - 6 cycles - zeroPage,x
 /// 0x6E - 3 bytes - 6 cycles - absolute
 /// 0x7E - 3 bytes - 7 cycles - absolute,x
-pub fn ror(cpu: *Chip, ret: AddressReturn) bool {
+pub fn ror(cpu: *Mos6502, ret: AddressReturn) bool {
     if (ret.accumulator) {
         const c: u16 = @intFromBool(cpu.status.isSet(.c));
         const value: u16 = cpu.a;
@@ -624,7 +624,7 @@ pub fn ror(cpu: *Chip, ret: AddressReturn) bool {
 /// 0x39 - 3 bytes - 4 cycles* - absolute,y
 /// 0x21 - 2 bytes - 6 cycles - (indirect,x)
 /// 0x31 - 2 bytes - 5 cycles* - (indirect),y
-pub fn @"and"(cpu: *Chip, ret: AddressReturn) bool {
+pub fn @"and"(cpu: *Mos6502, ret: AddressReturn) bool {
     const value = cpu.read(ret.address);
     cpu.a = cpu.a & value;
     cpu.status.set(.z, cpu.a == 0);
@@ -645,7 +645,7 @@ pub fn @"and"(cpu: *Chip, ret: AddressReturn) bool {
 /// 0x19 - 3 bytes - 4 cycles* - absolute,y
 /// 0x01 - 2 bytes - 6 cycles - (indirect,x)
 /// 0x11 - 2 bytes - 5 cycles* - (indirect),y
-pub fn ora(cpu: *Chip, ret: AddressReturn) bool {
+pub fn ora(cpu: *Mos6502, ret: AddressReturn) bool {
     const value = cpu.read(ret.address);
     cpu.a = cpu.a | value;
     cpu.status.set(.z, cpu.a == 0);
@@ -666,7 +666,7 @@ pub fn ora(cpu: *Chip, ret: AddressReturn) bool {
 /// 0x59 - 3 bytes - 4 cycles* - absolute,y
 /// 0x41 - 2 bytes - 6 cycles - (indirect,x)
 /// 0x51 - 2 bytes - 5 cycles* - (indirect),y
-pub fn eor(cpu: *Chip, ret: AddressReturn) bool {
+pub fn eor(cpu: *Mos6502, ret: AddressReturn) bool {
     const value = cpu.read(ret.address);
     cpu.a = cpu.a ^ value;
     cpu.status.set(.z, cpu.a == 0);
@@ -682,7 +682,7 @@ pub fn eor(cpu: *Chip, ret: AddressReturn) bool {
 ///     n = memory bit 7
 /// 0x24 - 2 bytes - 3 cycles - zeroPage
 /// 0x2C - 3 bytes - 4 cycles - absolute
-pub fn bit(cpu: *Chip, ret: AddressReturn) bool {
+pub fn bit(cpu: *Mos6502, ret: AddressReturn) bool {
     const value = cpu.read(ret.address);
     const result = cpu.a & value;
     cpu.status.set(.z, result == 0);
@@ -705,7 +705,7 @@ pub fn bit(cpu: *Chip, ret: AddressReturn) bool {
 /// 0xD9 - 3 bytes - 4 cycles* - absolute,y
 /// 0xC1 - 2 bytes - 6 cycles - (indirect,x)
 /// 0xD1 - 2 bytes - 5 cycles* - (indirect),y
-pub fn cmp(cpu: *Chip, ret: AddressReturn) bool {
+pub fn cmp(cpu: *Mos6502, ret: AddressReturn) bool {
     const value = cpu.read(ret.address);
     const result = cpu.a -% value;
     cpu.status.set(.c, cpu.a >= value);
@@ -723,7 +723,7 @@ pub fn cmp(cpu: *Chip, ret: AddressReturn) bool {
 /// 0xE0 - 2 bytes - 2 cycles - #immediate
 /// 0xE4 - 2 bytes - 3 cycles - zeroPage
 /// 0xEC - 3 bytes - 4 cycles - absolute
-pub fn cpx(cpu: *Chip, ret: AddressReturn) bool {
+pub fn cpx(cpu: *Mos6502, ret: AddressReturn) bool {
     const value = cpu.read(ret.address);
     const result = cpu.x -% value;
     cpu.status.set(.c, cpu.x >= value);
@@ -741,7 +741,7 @@ pub fn cpx(cpu: *Chip, ret: AddressReturn) bool {
 /// 0xC0 - 2 bytes - 2 cycles - #immediate
 /// 0xC4 - 2 bytes - 3 cycles - zeroPage
 /// 0xCC - 3 bytes - 4 cycles - absolute
-pub fn cpy(cpu: *Chip, ret: AddressReturn) bool {
+pub fn cpy(cpu: *Mos6502, ret: AddressReturn) bool {
     const value = cpu.read(ret.address);
     const result = cpu.y -% value;
     cpu.status.set(.c, cpu.y >= value);
@@ -753,7 +753,7 @@ pub fn cpy(cpu: *Chip, ret: AddressReturn) bool {
 /// BCC - Branch if Carry Clear
 /// `PC = PC + 2 + memory (signed)`
 /// 0x90 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
-pub fn bcc(cpu: *Chip, ret: AddressReturn) bool {
+pub fn bcc(cpu: *Mos6502, ret: AddressReturn) bool {
     if (!cpu.status.isSet(.c)) {
         micro.takeBranch(cpu, ret);
     }
@@ -764,7 +764,7 @@ pub fn bcc(cpu: *Chip, ret: AddressReturn) bool {
 /// BCS - Branch if Carry Set
 /// `PC = PC + 2 + memory (signed)`
 /// 0xB0 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
-pub fn bcs(cpu: *Chip, ret: AddressReturn) bool {
+pub fn bcs(cpu: *Mos6502, ret: AddressReturn) bool {
     if (cpu.status.isSet(.c)) {
         micro.takeBranch(cpu, ret);
     }
@@ -775,7 +775,7 @@ pub fn bcs(cpu: *Chip, ret: AddressReturn) bool {
 /// BEQ - Branch if Equal
 /// `PC = PC + 2 + memory (signed)`
 /// 0xF0 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
-pub fn beq(cpu: *Chip, ret: AddressReturn) bool {
+pub fn beq(cpu: *Mos6502, ret: AddressReturn) bool {
     if (cpu.status.isSet(.z)) {
         micro.takeBranch(cpu, ret);
     }
@@ -786,7 +786,7 @@ pub fn beq(cpu: *Chip, ret: AddressReturn) bool {
 /// BNE - Branch if Not Equal
 /// `PC = PC + 2 + memory (signed)`
 /// 0xD0 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
-pub fn bne(cpu: *Chip, ret: AddressReturn) bool {
+pub fn bne(cpu: *Mos6502, ret: AddressReturn) bool {
     if (!cpu.status.isSet(.z)) {
         micro.takeBranch(cpu, ret);
     }
@@ -797,7 +797,7 @@ pub fn bne(cpu: *Chip, ret: AddressReturn) bool {
 /// BPL - Branch if Plus
 /// `PC = PC + 2 + memory (signed)`
 /// 0x10 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
-pub fn bpl(cpu: *Chip, ret: AddressReturn) bool {
+pub fn bpl(cpu: *Mos6502, ret: AddressReturn) bool {
     if (!cpu.status.isSet(.n)) {
         micro.takeBranch(cpu, ret);
     }
@@ -808,7 +808,7 @@ pub fn bpl(cpu: *Chip, ret: AddressReturn) bool {
 /// BMI - Branch if Minus
 /// `PC = PC + 2 + memory (signed)`
 /// 0x30 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
-pub fn bmi(cpu: *Chip, ret: AddressReturn) bool {
+pub fn bmi(cpu: *Mos6502, ret: AddressReturn) bool {
     if (cpu.status.isSet(.n)) {
         micro.takeBranch(cpu, ret);
     }
@@ -819,7 +819,7 @@ pub fn bmi(cpu: *Chip, ret: AddressReturn) bool {
 /// BVC - Branch if Overflow CLear
 /// `PC = PC + 2 + memory (signed)`
 /// 0x50 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
-pub fn bvc(cpu: *Chip, ret: AddressReturn) bool {
+pub fn bvc(cpu: *Mos6502, ret: AddressReturn) bool {
     if (!cpu.status.isSet(.v)) {
         micro.takeBranch(cpu, ret);
     }
@@ -830,7 +830,7 @@ pub fn bvc(cpu: *Chip, ret: AddressReturn) bool {
 /// BVS - Branch if Overflow Set
 /// `PC = PC + 2 + memory (signed)`
 /// 0x70 - 2 bytes - 2 cycles (3 if branch taken, 4 if page crossed) - relative
-pub fn bvs(cpu: *Chip, ret: AddressReturn) bool {
+pub fn bvs(cpu: *Mos6502, ret: AddressReturn) bool {
     if (cpu.status.isSet(.v)) {
         micro.takeBranch(cpu, ret);
     }
@@ -842,7 +842,7 @@ pub fn bvs(cpu: *Chip, ret: AddressReturn) bool {
 /// `PC = Memory`
 /// 0x4C - 3 bytes - 3 cycles - absolute
 /// 0x6C - 3 bytes - 5 cycles - (indirect)
-pub fn jmp(cpu: *Chip, ret: AddressReturn) bool {
+pub fn jmp(cpu: *Mos6502, ret: AddressReturn) bool {
     cpu.pc = ret.address;
     return false;
 }
@@ -851,7 +851,7 @@ pub fn jmp(cpu: *Chip, ret: AddressReturn) bool {
 /// `push PC + 2 to stack`
 /// `PC = memory`
 /// 0x20 - 3 bytes - 6 cycles - absolute
-pub fn jsr(cpu: *Chip, ret: AddressReturn) bool {
+pub fn jsr(cpu: *Mos6502, ret: AddressReturn) bool {
     cpu.pc -= 1;
 
     micro.writeSp(cpu, @truncate(cpu.pc >> 8));
@@ -867,7 +867,7 @@ pub fn jsr(cpu: *Chip, ret: AddressReturn) bool {
 /// `pull PC from stack`
 /// `PC = PC + 1`
 /// 0x60 - 1 byte - 6 cycles - implied
-pub fn rts(cpu: *Chip, _: AddressReturn) bool {
+pub fn rts(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.sp +%= 1;
     const lo: u16 = micro.readSp(cpu);
     cpu.sp +%= 1;
@@ -886,7 +886,7 @@ pub fn rts(cpu: *Chip, _: AddressReturn) bool {
 /// Flags:
 ///     i = 1
 ///     b = pushed as 1
-pub fn brk(cpu: *Chip, _: AddressReturn) bool {
+pub fn brk(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.pc += 1;
 
     cpu.status.set(.i, true);
@@ -918,7 +918,7 @@ pub fn brk(cpu: *Chip, _: AddressReturn) bool {
 ///     d = result & 0x08
 ///     v = result & 0x40
 ///     n = result & 0x80
-pub fn rti(cpu: *Chip, _: AddressReturn) bool {
+pub fn rti(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.sp += 1;
     cpu.status.data = micro.readSp(cpu);
     cpu.status.set(.b, false);
@@ -937,7 +937,7 @@ pub fn rti(cpu: *Chip, _: AddressReturn) bool {
 /// `($0100 + SP) = A`
 /// `SP = SP - 1`
 /// 0x48 - 1 byte - 3 cycles - implied
-pub fn pha(cpu: *Chip, _: AddressReturn) bool {
+pub fn pha(cpu: *Mos6502, _: AddressReturn) bool {
     micro.writeSp(cpu, cpu.a);
     cpu.sp -%= 1;
     return false;
@@ -950,7 +950,7 @@ pub fn pha(cpu: *Chip, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result & 0x80 != 0
 /// 0x68 - 1 byte - 4 cycles - implied
-pub fn pla(cpu: *Chip, _: AddressReturn) bool {
+pub fn pla(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.sp +%= 1;
     cpu.a = micro.readSp(cpu);
     cpu.status.set(.z, cpu.a == 0);
@@ -962,7 +962,7 @@ pub fn pla(cpu: *Chip, _: AddressReturn) bool {
 /// `($0100 + SP) = NV11DIZC`
 /// `SP = SP - 1`
 /// 0x08 - 1 byte - 3 cycles - implied
-pub fn php(cpu: *Chip, _: AddressReturn) bool {
+pub fn php(cpu: *Mos6502, _: AddressReturn) bool {
     var local: Status = cpu.status;
     local.set(.b, true);
     local.set(.u, true);
@@ -982,7 +982,7 @@ pub fn php(cpu: *Chip, _: AddressReturn) bool {
 ///     v = result & 0x40 != 0
 ///     n = result & 0x80 != 0
 /// 0x28 - 1 byte - 4 cycles - implied
-pub fn plp(cpu: *Chip, _: AddressReturn) bool {
+pub fn plp(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.sp +%= 1;
     const result = micro.readSp(cpu);
     cpu.status.set(.c, result & 0x01 != 0);
@@ -997,7 +997,7 @@ pub fn plp(cpu: *Chip, _: AddressReturn) bool {
 /// TXS - Transfer X to Stack Pointer
 /// `SP = x`
 /// 0x9A - 1 byte - 2 cycles - implied
-pub fn txs(cpu: *Chip, _: AddressReturn) bool {
+pub fn txs(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.sp = cpu.x;
     return false;
 }
@@ -1008,7 +1008,7 @@ pub fn txs(cpu: *Chip, _: AddressReturn) bool {
 ///     z = result == 0
 ///     n = result & 0x80 != 0
 /// 0xBA - 1 byte - 2 cycles - implied
-pub fn tsx(cpu: *Chip, _: AddressReturn) bool {
+pub fn tsx(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.x = cpu.sp;
     cpu.status.set(.z, cpu.x == 0);
     cpu.status.set(.n, cpu.x & 0x80 != 0);
@@ -1018,7 +1018,7 @@ pub fn tsx(cpu: *Chip, _: AddressReturn) bool {
 /// CLC - Clear Carry
 /// `C = 0`
 /// 0x18 - 1 byte - 2 cycles - implied
-pub fn clc(cpu: *Chip, _: AddressReturn) bool {
+pub fn clc(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.status.set(.c, false);
     return false;
 }
@@ -1026,7 +1026,7 @@ pub fn clc(cpu: *Chip, _: AddressReturn) bool {
 /// SEC - Set Carry
 /// `C = 1`
 /// 0x38 - 1 byte - 2 cycles - implied
-pub fn sec(cpu: *Chip, _: AddressReturn) bool {
+pub fn sec(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.status.set(.c, true);
     return false;
 }
@@ -1034,7 +1034,7 @@ pub fn sec(cpu: *Chip, _: AddressReturn) bool {
 /// CLI - Clear Interrupt Disable
 /// `I = 0`
 /// 0x58 - 1 byte - 2 cycles - implied
-pub fn cli(cpu: *Chip, _: AddressReturn) bool {
+pub fn cli(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.status.set(.i, false);
     return false;
 }
@@ -1042,7 +1042,7 @@ pub fn cli(cpu: *Chip, _: AddressReturn) bool {
 /// SEI - Set interrupt Disable
 /// `I = 1`
 /// 0x78 - 1 byte - 2 cycles - implied
-pub fn sei(cpu: *Chip, _: AddressReturn) bool {
+pub fn sei(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.status.set(.i, true);
     return false;
 }
@@ -1050,7 +1050,7 @@ pub fn sei(cpu: *Chip, _: AddressReturn) bool {
 /// CLD - CLear Decimal
 /// `D = 0`
 /// 0xD8 - 1 byte - 2 cycles - implied
-pub fn cld(cpu: *Chip, _: AddressReturn) bool {
+pub fn cld(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.status.set(.d, false);
     return false;
 }
@@ -1058,7 +1058,7 @@ pub fn cld(cpu: *Chip, _: AddressReturn) bool {
 /// SED - Set Decimal
 /// `D = 1`
 /// 0xF8 - 1 byte - 2 cycles - implied
-pub fn sed(cpu: *Chip, _: AddressReturn) bool {
+pub fn sed(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.status.set(.d, true);
     return false;
 }
@@ -1066,17 +1066,17 @@ pub fn sed(cpu: *Chip, _: AddressReturn) bool {
 /// CLV - Clear Overflow
 /// `V = 0`
 /// 0xB8 - 1 byte - 2 cycles - implied
-pub fn clv(cpu: *Chip, _: AddressReturn) bool {
+pub fn clv(cpu: *Mos6502, _: AddressReturn) bool {
     cpu.status.set(.v, false);
     return false;
 }
 
 /// NOP - No Operation
 /// 0xEA - 1 byte - 2 cycles - implied
-pub fn nop(_: *Chip, _: AddressReturn) bool {
+pub fn nop(_: *Mos6502, _: AddressReturn) bool {
     return false;
 }
 
-pub fn type_unknown(_: *Chip, _: AddressReturn) bool {
+pub fn type_unknown(_: *Mos6502, _: AddressReturn) bool {
     @panic("unknown instruction type!");
 }

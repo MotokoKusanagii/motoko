@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const tests = [_][]const u8{
-    "src/chip/mos_technology_6502.zig",
+    "chip/mos_technology_6502/mos_technology_6502.zig",
 };
 
 const chips = [_]struct {
@@ -9,12 +9,28 @@ const chips = [_]struct {
     path: []const u8,
 }{
     .{
-        .name = "mos_technology_6502.zig",
-        .path = "chip/mos_technology_6502.zig",
+        .name = "mos_technology_6502",
+        .path = "chip/mos_technology_6502/mos_technology_6502.zig",
     },
 };
 
-pub fn build(b: *std.Build) void {
+const Test = struct {};
+
+const systems = [_]struct {
+    name: []const u8,
+    path: []const u8,
+    chips: []const []const u8,
+}{
+    .{
+        .name = "nes",
+        .path = "system/nes/nes.zig",
+        .chips = &.{
+            "mos_technology_6502",
+        },
+    },
+};
+
+pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
@@ -33,6 +49,9 @@ pub fn build(b: *std.Build) void {
         },
     });
 
+    var chip_hm = std.StringHashMap(*std.Build.Module).init(b.allocator);
+    defer chip_hm.deinit();
+
     for (chips) |chip| {
         const chip_mod = b.createModule(.{
             .root_source_file = b.path(chip.path),
@@ -41,6 +60,22 @@ pub fn build(b: *std.Build) void {
         });
 
         exe_mod.addImport(chip.name, chip_mod);
+
+        try chip_hm.put(chip.name, chip_mod);
+    }
+
+    for (systems) |system| {
+        const mod = b.createModule(.{
+            .root_source_file = b.path(system.path),
+            .target = target,
+            .optimize = optimize,
+        });
+
+        exe_mod.addImport(system.name, mod);
+
+        for (system.chips) |chip| {
+            mod.addImport(chip, chip_hm.get(chip).?);
+        }
     }
 
     const exe = b.addExecutable(.{

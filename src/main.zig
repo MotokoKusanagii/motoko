@@ -5,7 +5,7 @@ const dvui = @import("dvui");
 const Ui = @import("Ui.zig");
 
 pub const std_options: std.Options = .{
-    .log_level = .info,
+    .log_level = .debug,
     .logFn = logFn,
 };
 
